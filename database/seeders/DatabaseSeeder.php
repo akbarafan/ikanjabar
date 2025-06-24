@@ -2,6 +2,10 @@
 
 namespace Database\Seeders;
 
+use App\Models\Branch;
+use App\Models\FishBatch;
+use App\Models\FishType;
+use App\Models\Pond;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Hash;
@@ -29,7 +33,7 @@ class DatabaseSeeder extends Seeder
             'id' => $userId,
             'full_name' => 'Admin Utama',
             'address' => 'Jl. Ikan Mas No. 5',
-            'branch_id' => 1,
+            'branch_id' => Branch::first()->id,
             'phone_number' => '081234567890',
             'email' => 'admin@example.com',
             'password' => Hash::make('password'),
@@ -41,7 +45,7 @@ class DatabaseSeeder extends Seeder
         // Ponds
         DB::table('ponds')->insert([
             [
-                'branch_id' => 1,
+                'branch_id' => Branch::first()->id,
                 'name' => 'Kolam 1',
                 'code' => 'KLM001',
                 'type' => 'beton',
@@ -52,7 +56,7 @@ class DatabaseSeeder extends Seeder
                 'updated_at' => now()
             ],
             [
-                'branch_id' => 1,
+                'branch_id' => Branch::first()->id,
                 'name' => 'Kolam 2',
                 'code' => 'KLM002',
                 'type' => 'terpal',
@@ -74,8 +78,8 @@ class DatabaseSeeder extends Seeder
 
         // Fish Batches
         DB::table('fish_batches')->insert([
-            'pond_id' => 1,
-            'fish_type_id' => 1,
+            'pond_id' => Pond::first()->id,
+            'fish_type_id' => FishType::first()->id,
             'date_start' => now()->subDays(14),
             'initial_count' => 1000,
             'notes' => 'Batch awal bulan ini',
@@ -87,14 +91,14 @@ class DatabaseSeeder extends Seeder
 
         // Fish Stock Snapshots
         DB::table('fish_stock_snapshots')->insert([
-            'fish_batch_id' => 1,
+            'fish_batch_id' => FishBatch::first()->id,
             'current_stock' => 980,
             'updated_at' => now()
         ]);
 
         // Fish Growth Logs
         DB::table('fish_growth_logs')->insert([
-            'fish_batch_id' => 1,
+            'fish_batch_id' => FishBatch::first()->id,
             'week_number' => 2,
             'avg_weight_gram' => 15,
             'avg_length_cm' => 6,
@@ -107,7 +111,7 @@ class DatabaseSeeder extends Seeder
 
         // Mortalities
         DB::table('mortalities')->insert([
-            'fish_batch_id' => 1,
+            'fish_batch_id' => FishBatch::first()->id,
             'date' => now()->subDays(2),
             'dead_count' => 10,
             'cause' => 'Perubahan suhu mendadak',
@@ -119,7 +123,7 @@ class DatabaseSeeder extends Seeder
 
         // Water Quality
         DB::table('water_qualities')->insert([
-            'pond_id' => 1,
+            'pond_id' => Pond::first()->id,
             'date_recorded' => now()->subDays(1),
             'ph' => 7.2,
             'temperature_c' => 28,
@@ -133,7 +137,7 @@ class DatabaseSeeder extends Seeder
 
         // Feedings
         DB::table('feedings')->insert([
-            'fish_batch_id' => 1,
+            'fish_batch_id' => FishBatch::first()->id,
             'date' => now()->subDay(),
             'feed_type' => 'Pelet A1',
             'feed_amount_kg' => 5,
@@ -145,7 +149,7 @@ class DatabaseSeeder extends Seeder
 
         // Sales
         DB::table('sales')->insert([
-            'fish_batch_id' => 1,
+            'fish_batch_id' => FishBatch::first()->id,
             'date' => now(),
             'quantity_fish' => 100,
             'avg_weight_per_fish_kg' => 0.2,
