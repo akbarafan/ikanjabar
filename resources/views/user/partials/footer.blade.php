@@ -1,5 +1,5 @@
-<footer class="bg-white border-t border-gray-200 mt-12 ml-64">
-    <div class="max-w-7xl mx-auto py-6 px-6">
+<footer class="bg-white border-t border-gray-200 mt-12">
+    <div class="px-6 py-6">
         <div class="flex items-center justify-between">
             <div class="flex items-center space-x-4">
                 <i class="fas fa-fish text-blue-500"></i>
@@ -12,8 +12,6 @@
                     <div class="w-2 h-2 bg-green-400 rounded-full mr-2"></div>
                     Server: Online
                 </span>
-                <span>•</span>
-                <span>Last Update: {{ now()->format('d M Y, H:i') }} WIB</span>
             </div>
         </div>
     </div>

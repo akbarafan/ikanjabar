@@ -16,67 +16,74 @@ class Pond extends Model
         'type',
         'volume_liters',
         'description',
-        'documentation_file',
+        'documentation_file'
     ];
 
+    // Relationship ke Branch
     public function branch()
     {
         return $this->belongsTo(Branch::class);
     }
 
+    // Relationship ke Fish Batches
     public function fishBatches()
     {
         return $this->hasMany(FishBatch::class);
     }
 
+    // Relationship ke Water Quality (semua data)
     public function waterQualities()
     {
         return $this->hasMany(WaterQuality::class);
     }
 
-    // Perhitungan kapasitas optimal berdasarkan tipe kolam
-    public function getOptimalCapacityAttribute()
+    // Relationship ke Water Quality terbaru
+    public function latestWaterQuality()
     {
-        $densityPerLiter = match ($this->type) {
-            'tanah' => 0.5,
-            'beton' => 0.8,
-            'viber' => 0.7,
-            'terpal' => 0.6,
-            default => 0.5
-        };
-
-        return (int) ($this->volume_liters * $densityPerLiter);
+        return $this->hasOne(WaterQuality::class)->latest('date_recorded');
     }
 
-    // Perhitungan stok ikan saat ini
-    public function getCurrentStockAttribute()
+    // Accessor untuk status kualitas air (termasuk ammonia)
+    public function getWaterQualityStatusAttribute()
     {
-        return $this->fishBatches()->sum(function ($batch) {
-            return $batch->current_stock;
-        });
+        $latest = $this->latestWaterQuality;
+
+        if (!$latest) return 'unknown';
+
+        // Kriteria danger
+        if (
+            $latest->ph < 6.5 || $latest->ph > 8.5 ||
+            $latest->temperature_c > 30 || $latest->do_mg_l < 5 ||
+            $latest->ammonia_mg_l > 0.5
+        ) {
+            return 'danger';
+        }
+        // Kriteria warning
+        elseif (
+            $latest->ph < 7 || $latest->ph > 8 ||
+            $latest->temperature_c > 28 || $latest->do_mg_l < 6 ||
+            $latest->ammonia_mg_l > 0.25
+        ) {
+            return 'warning';
+        }
+
+        return 'healthy';
     }
 
-    // Perhitungan tingkat kepadatan
+    // Accessor untuk density percentage (simulasi)
     public function getDensityPercentageAttribute()
     {
-        if ($this->optimal_capacity == 0) return 0;
-        return round(($this->current_stock / $this->optimal_capacity) * 100, 2);
+        $activeBatches = $this->fishBatches()->count();
+        return min(($activeBatches * 25), 100); // Simulasi density
     }
 
-    // Status kepadatan kolam
+    // Accessor untuk density status
     public function getDensityStatusAttribute()
     {
-        $percentage = $this->density_percentage;
+        $density = $this->density_percentage;
 
-        if ($percentage <= 60) return 'optimal';
-        if ($percentage <= 80) return 'moderate';
-        if ($percentage <= 100) return 'high';
-        return 'overcrowded';
-    }
-
-    // Kualitas air terbaru
-    public function getLatestWaterQualityAttribute()
-    {
-        return $this->waterQualities()->latest('date_recorded')->first();
+        if ($density > 80) return 'high';
+        if ($density > 60) return 'medium';
+        return 'low';
     }
 }

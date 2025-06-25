@@ -18,69 +18,63 @@ class WaterQuality extends Model
         'do_mg_l',
         'ammonia_mg_l',
         'documentation_file',
-        'created_by',
+        'created_by'
     ];
 
     protected $casts = [
         'date_recorded' => 'date',
+        'ph' => 'float',
+        'temperature_c' => 'float',
+        'do_mg_l' => 'float',
+        'ammonia_mg_l' => 'float',
     ];
 
+    // Relationship ke Pond
     public function pond()
     {
         return $this->belongsTo(Pond::class);
     }
 
+    // Relationship ke User (creator)
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');
     }
 
-    // Status kualitas air berdasarkan parameter
+    // Accessor untuk status kualitas air (termasuk ammonia)
     public function getWaterQualityStatusAttribute()
     {
-        $phStatus = $this->getPhStatus();
-        $tempStatus = $this->getTemperatureStatus();
-        $doStatus = $this->getDoStatus();
-        $ammoniaStatus = $this->getAmmoniaStatus();
+        // Kriteria danger: parameter ekstrem
+        if (
+            $this->ph < 6.5 || $this->ph > 8.5 ||
+            $this->temperature_c > 30 || $this->do_mg_l < 5 ||
+            $this->ammonia_mg_l > 0.5
+        ) {
+            return 'danger';
+        }
+        // Kriteria warning: parameter mendekati batas
+        elseif (
+            $this->ph < 7 || $this->ph > 8 ||
+            $this->temperature_c > 28 || $this->do_mg_l < 6 ||
+            $this->ammonia_mg_l > 0.25
+        ) {
+            return 'warning';
+        }
 
-        $statuses = [$phStatus, $tempStatus, $doStatus, $ammoniaStatus];
-
-        if (in_array('critical', $statuses)) return 'critical';
-        if (in_array('poor', $statuses)) return 'poor';
-        if (in_array('moderate', $statuses)) return 'moderate';
-        return 'good';
+        return 'healthy';
     }
 
-    private function getPhStatus()
+    // Accessor untuk mendapatkan parameter yang bermasalah
+    public function getProblematicParametersAttribute()
     {
-        if ($this->ph < 6.0 || $this->ph > 9.0) return 'critical';
-        if ($this->ph < 6.5 || $this->ph > 8.5) return 'poor';
-        if ($this->ph < 7.0 || $this->ph > 8.0) return 'moderate';
-        return 'good';
-    }
+        $problems = [];
 
-    private function getTemperatureStatus()
-    {
-        if ($this->temperature_c < 20 || $this->temperature_c > 35) return 'critical';
-        if ($this->temperature_c < 22 || $this->temperature_c > 32) return 'poor';
-        if ($this->temperature_c < 25 || $this->temperature_c > 30) return 'moderate';
-        return 'good';
-    }
+        if ($this->ph < 6.5) $problems[] = 'pH Rendah (' . $this->ph . ')';
+        if ($this->ph > 8.5) $problems[] = 'pH Tinggi (' . $this->ph . ')';
+        if ($this->temperature_c > 30) $problems[] = 'Suhu Tinggi (' . $this->temperature_c . '°C)';
+        if ($this->do_mg_l < 5) $problems[] = 'DO Rendah (' . $this->do_mg_l . ' mg/L)';
+        if ($this->ammonia_mg_l > 0.5) $problems[] = 'Ammonia Tinggi (' . $this->ammonia_mg_l . ' mg/L)';
 
-    private function getDoStatus()
-    {
-        if ($this->do_mg_l < 3) return 'critical';
-        if ($this->do_mg_l < 4) return 'poor';
-        if ($this->do_mg_l < 5) return 'moderate';
-        return 'good';
-    }
-
-    private function getAmmoniaStatus()
-    {
-        if ($this->ammonia_mg_l === null) return 'good';
-        if ($this->ammonia_mg_l > 1.0) return 'critical';
-        if ($this->ammonia_mg_l > 0.5) return 'poor';
-        if ($this->ammonia_mg_l > 0.25) return 'moderate';
-        return 'good';
+        return $problems;
     }
 }
