@@ -19,7 +19,7 @@ class DatabaseSeeder extends Seeder
     {
         // Branches
         DB::table('branches')->insert([
-            'name' => 'Cabang Utama',
+            'name' => 'Cabang Sukabumi',
             'location' => 'Jl. Laut Selatan No. 88',
             'contact_person' => 'Pak Budi',
             'pic_name' => 'Budi Santoso',

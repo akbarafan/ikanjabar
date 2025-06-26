@@ -46,8 +46,7 @@ class PondController extends Controller
     {
         $branches = Branch::all();
         $pondTypes = ['tanah', 'beton', 'viber', 'terpal'];
-
-        return view('ponds.create', compact('branches', 'pondTypes'));
+        return view('user.ponds.create', compact('branches', 'pondTypes'));
     }
 
     public function store(Request $request)
@@ -67,9 +66,17 @@ class PondController extends Controller
                 ->store('pond-documentation', 'public');
         }
 
-        Pond::create($validated);
+        $pond = Pond::create($validated);
 
-        return redirect()->route('ponds.index')
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Kolam berhasil ditambahkan',
+                'pond' => $pond
+            ]);
+        }
+
+        return redirect()->route('user.ponds.index')
             ->with('success', 'Kolam berhasil ditambahkan');
     }
 
@@ -116,15 +123,31 @@ class PondController extends Controller
         $stockHistory = $this->getStockHistory($pond);
         $monthlyProduction = $this->getMonthlyProduction($pond);
 
-        return view('ponds.show', compact('pond', 'statistics', 'waterQualityTrend', 'stockHistory', 'monthlyProduction'));
+        return view('user.ponds.show', compact('pond', 'statistics', 'waterQualityTrend', 'stockHistory', 'monthlyProduction'));
     }
 
     public function edit(Pond $pond)
     {
+        if (request()->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'pond' => [
+                    'id' => $pond->id,
+                    'branch_id' => $pond->branch_id,
+                    'name' => $pond->name,
+                    'code' => $pond->code,
+                    'type' => $pond->type,
+                    'volume_liters' => $pond->volume_liters,
+                    'description' => $pond->description,
+                    'documentation_file' => $pond->documentation_file,
+                    'documentation_file_url' => $pond->documentation_file ? Storage::url($pond->documentation_file) : null,
+                ]
+            ]);
+        }
+
         $branches = Branch::all();
         $pondTypes = ['tanah', 'beton', 'viber', 'terpal'];
-
-        return view('ponds.edit', compact('pond', 'branches', 'pondTypes'));
+        return view('user.ponds.edit', compact('pond', 'branches', 'pondTypes'));
     }
 
     public function update(Request $request, Pond $pond)
@@ -144,14 +167,21 @@ class PondController extends Controller
             if ($pond->documentation_file) {
                 Storage::disk('public')->delete($pond->documentation_file);
             }
-
             $validated['documentation_file'] = $request->file('documentation_file')
                 ->store('pond-documentation', 'public');
         }
 
         $pond->update($validated);
 
-        return redirect()->route('ponds.index')
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Kolam berhasil diperbarui',
+                'pond' => $pond
+            ]);
+        }
+
+        return redirect()->route('user.ponds.index')
             ->with('success', 'Kolam berhasil diperbarui');
     }
 
@@ -159,6 +189,13 @@ class PondController extends Controller
     {
         // Cek apakah kolam masih memiliki batch aktif
         if ($pond->fishBatches()->count() > 0) {
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Kolam tidak dapat dihapus karena masih memiliki batch ikan aktif'
+                ], 422);
+            }
+
             return redirect()->route('ponds.index')
                 ->with('error', 'Kolam tidak dapat dihapus karena masih memiliki batch ikan aktif');
         }
@@ -170,11 +207,18 @@ class PondController extends Controller
 
         $pond->delete();
 
-        return redirect()->route('ponds.index')
+        if (request()->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Kolam berhasil dihapus'
+            ]);
+        }
+
+        return redirect()->route('user.ponds.index')
             ->with('success', 'Kolam berhasil dihapus');
     }
 
-    // Helper methods
+    // Helper methods tetap sama seperti sebelumnya
     private function calculatePondMortalityRate($pond)
     {
         $totalInitial = $pond->fishBatches()->sum('initial_count');
@@ -210,7 +254,6 @@ class PondController extends Controller
     private function getStockHistory($pond)
     {
         $history = [];
-
         foreach ($pond->fishBatches as $batch) {
             $history[] = [
                 'batch_id' => $batch->id,
@@ -221,17 +264,14 @@ class PondController extends Controller
                 'status' => $batch->status,
             ];
         }
-
         return collect($history)->sortByDesc('date_start');
     }
 
     private function getMonthlyProduction($pond)
     {
         $production = [];
-
         for ($i = 11; $i >= 0; $i--) {
             $month = now()->subMonths($i);
-
             $totalSales = 0;
             $totalRevenue = 0;
 
@@ -251,7 +291,6 @@ class PondController extends Controller
                 'revenue' => $totalRevenue,
             ];
         }
-
         return $production;
     }
 }

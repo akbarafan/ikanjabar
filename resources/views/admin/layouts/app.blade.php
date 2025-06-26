@@ -3,15 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'AquaCulture Dashboard') - Sistem Monitoring Perikanan</title>
+    <title>@yield('title', 'Admin Dashboard') - Sistem Monitoring Perikanan</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-
     <style>
         .gradient-bg {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
         }
         .glass-effect {
             backdrop-filter: blur(10px);
@@ -32,27 +30,31 @@
             height: 300px;
             width: 100%;
         }
-        .sidebar-active { @apply bg-blue-600 text-white; }
-        .sidebar-item { @apply text-gray-300 hover:bg-blue-600 hover:text-white; }
+        .sidebar-active {
+            @apply bg-blue-50 text-blue-700 border-r-4 border-blue-500;
+        }
     </style>
     @stack('styles')
 </head>
-<body class="bg-gradient-to-br from-blue-50 via-cyan-50 to-teal-50 min-h-screen">
-    <!-- Navigation -->
-    @include('partials.navbar.index')
+<body class="bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 min-h-screen">
+    <div class="flex">
+        <!-- Sidebar -->
+        @include('admin.partials.sidebar')
 
-    <!-- Sidebar -->
-    @include('partials.sidebar.index')
+        <!-- Main Content -->
+        <div class="flex-1 ml-64">
+            <!-- Navbar -->
+            @include('admin.partials.navbar')
 
-    <!-- Main Content -->
-    <div class="ml-64 transition-all duration-300" id="main-content">
-        <div class="max-w-7xl mx-auto py-6 px-6">
-            @yield('content')
+            <!-- Page Content -->
+            <main class="p-6">
+                @yield('content')
+            </main>
+
+            <!-- Footer -->
+            @include('admin.partials.footer')
         </div>
     </div>
-
-    <!-- Footer -->
-    @include('partials.footer.index')
 
     @stack('scripts')
 </body>
