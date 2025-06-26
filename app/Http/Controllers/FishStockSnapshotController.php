@@ -11,7 +11,8 @@ use Illuminate\Support\Facades\DB;
 class FishStockSnapshotController extends Controller
 {
     public function index()
-    {
+    {git remote remove origin
+
         $snapshots = FishStockSnapshot::with(['fishBatch.pond.branch', 'fishBatch.fishType'])
             ->when(request('search'), function($query) {
                 $query->whereHas('fishBatch.pond', function($q) {
