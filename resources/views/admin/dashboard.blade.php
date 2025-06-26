@@ -161,6 +161,48 @@
     .stagger-3 { animation-delay: 0.3s; }
     .stagger-4 { animation-delay: 0.4s; }
     .stagger-5 { animation-delay: 0.5s; }
+
+    /* Style untuk ranking badges */
+    .rank-badge {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 14px;
+        color: white;
+    }
+
+    .rank-1 { background: linear-gradient(135deg, #FFD700, #FFA500); }
+    .rank-2 { background: linear-gradient(135deg, #C0C0C0, #A9A9A9); }
+    .rank-3 { background: linear-gradient(135deg, #CD7F32, #B8860B); }
+    .rank-other { background: linear-gradient(135deg, #6B7280, #4B5563); }
+
+    /* Fix untuk chart container agar tidak terpotong */
+    .chart-container {
+        position: relative;
+        height: 300px;
+        width: 100%;
+        padding: 10px;
+    }
+
+    .chart-container canvas {
+        max-height: 100% !important;
+        max-width: 100% !important;
+    }
+
+    /* Khusus untuk doughnut chart agar tidak terpotong */
+    .doughnut-chart-container {
+        position: relative;
+        height: 350px;
+        width: 100%;
+        padding: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
 </style>
 @endpush
 
@@ -250,10 +292,77 @@
         </div>
     </div>
 
+    <!-- Tabel Omset Tertinggi (menggantikan chart Distribusi Jenis Kolam) -->
     <div class="bg-white rounded-lg shadow-md p-6 card-hover animate-slide-in-right">
-        <h3 class="text-lg font-semibold text-gray-800 mb-4">Distribusi Jenis Kolam</h3>
-        <div class="chart-container">
-            <canvas id="pondTypesChart"></canvas>
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">
+            <i class="fas fa-trophy text-yellow-500 mr-2"></i>
+            Omset Tertinggi
+        </h3>
+        <div class="overflow-x-auto">
+            <table class="min-w-full">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Peringkat</th>
+                        <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Cabang</th>
+                        <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Penghasilan</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    @php
+                        // Data dummy untuk omset tertinggi - nanti bisa diganti dengan data real dari controller
+                        $topRevenue = [
+                            ['name' => 'Cabang Jakarta Pusat', 'revenue' => 125000000],
+                            ['name' => 'Cabang Bandung', 'revenue' => 98500000],
+                            ['name' => 'Cabang Surabaya', 'revenue' => 87200000],
+                            ['name' => 'Cabang Medan', 'revenue' => 76800000],
+                            ['name' => 'Cabang Semarang', 'revenue' => 65400000],
+                        ];
+                    @endphp
+                    
+                    @foreach($topRevenue as $index => $branch)
+                    <tr class="hover:bg-gray-50 transition-all duration-300 transform hover:scale-[1.01]">
+                        <td class="px-3 py-2 whitespace-nowrap">
+                            <div class="rank-badge {{ $index == 0 ? 'rank-1' : ($index == 1 ? 'rank-2' : ($index == 2 ? 'rank-3' : 'rank-other')) }}">
+                                {{ $index + 1 }}
+                            </div>
+                        </td>
+                        <td class="px-3 py-2 whitespace-nowrap">
+                            <div class="flex items-center">
+                                @if($index == 0)
+                                    <i class="fas fa-crown text-yellow-500 mr-2"></i>
+                                @elseif($index == 1)
+                                    <i class="fas fa-medal text-gray-400 mr-2"></i>
+                                @elseif($index == 2)
+                                    <i class="fas fa-award text-yellow-600 mr-2"></i>
+                                @else
+                                    <i class="fas fa-building text-gray-400 mr-2"></i>
+                                @endif
+                                <span class="text-sm font-medium text-gray-900">{{ $branch['name'] }}</span>
+                            </div>
+                        </td>
+                        <td class="px-3 py-2 whitespace-nowrap">
+                            <span class="text-sm font-bold {{ $index == 0 ? 'text-yellow-600' : ($index == 1 ? 'text-gray-600' : ($index == 2 ? 'text-yellow-700' : 'text-gray-500')) }}">
+                                Rp {{ number_format($branch['revenue'], 0, ',', '.') }}
+                            </span>
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Progress bars untuk visualisasi -->
+        <div class="mt-4 space-y-2">
+            @foreach($topRevenue as $index => $branch)
+            <div class="flex items-center space-x-3">
+                <span class="text-xs text-gray-500 w-20">{{ Str::limit($branch['name'], 15) }}</span>
+                <div class="flex-1 bg-gray-200 rounded-full h-2">
+                    <div class="h-2 rounded-full {{ $index == 0 ? 'bg-yellow-500' : ($index == 1 ? 'bg-gray-400' : ($index == 2 ? 'bg-yellow-600' : 'bg-gray-300')) }}" 
+                         style="width: {{ ($branch['revenue'] / $topRevenue[0]['revenue']) * 100 }}%"></div>
+                </div>
+                <span class="text-xs text-gray-400">{{ number_format(($branch['revenue'] / $topRevenue[0]['revenue']) * 100, 1) }}%</span>
+            </div>
+            @endforeach
         </div>
     </div>
 </div>
@@ -314,8 +423,18 @@
     </div>
 </div>
 
+<!-- POSISI SUDAH DITUKAR: Distribusi Jenis Kolam (kiri) dan Kualitas Air Rata-rata (kanan) -->
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <!-- Card Distribusi Jenis Kolam (sekarang di kiri) - DIPERBAIKI -->
     <div class="bg-white rounded-lg shadow-md p-6 card-hover animate-slide-in-left">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">Distribusi Jenis Kolam</h3>
+        <div class="doughnut-chart-container">
+            <canvas id="pondTypesChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Card Kualitas Air Rata-rata (sekarang di kanan) -->
+    <div class="bg-white rounded-lg shadow-md p-6 card-hover animate-slide-in-right">
         <h3 class="text-lg font-semibold text-gray-800 mb-4">Kualitas Air Rata-rata</h3>
 
         <div class="grid grid-cols-2 gap-4">
@@ -323,8 +442,7 @@
                 <p class="text-sm text-gray-600">pH Air</p>
                 <div class="flex items-end">
                     <span class="text-3xl font-bold text-blue-700 number-counter">{{ number_format($avgWaterQuality['avg_ph'], 1) }}</span>
-                    <span class="text-sm text
-                                        <span class="text-sm text-gray-500 ml-2 mb-1">pH</span>
+                    <span class="text-sm text-gray-500 ml-2 mb-1">pH</span>
                 </div>
                 <div class="mt-2 text-xs text-gray-500">
                     Rentang ideal: 7.0 - 8.0 pH
@@ -365,40 +483,40 @@
             </div>
         </div>
     </div>
+</div>
 
-    <div class="bg-white rounded-lg shadow-md p-6 card-hover animate-slide-in-right">
-        <h3 class="text-lg font-semibold text-gray-800 mb-4">Statistik Cabang</h3>
+<div class="bg-white rounded-lg shadow-md p-6 mb-6 card-hover animate-slide-in-left">
+    <h3 class="text-lg font-semibold text-gray-800 mb-4">Statistik Cabang</h3>
 
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cabang</th>
-                        <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kolam</th>
-                        <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Batch Aktif</th>
-                        <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stok Ikan</th>
-                    </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
-                    @foreach($branches->take(5) as $branch)
-                    <tr class="hover:bg-gray-50 transition-all duration-300 transform hover:scale-[1.01]">
-                        <td class="px-3 py-2 whitespace-nowrap text-sm font-medium text-gray-900">
-                            {{ $branch->name }}
-                        </td>
-                        <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-500">
-                            {{ $branch->statistics['total_ponds'] ?? 0 }}
-                        </td>
-                        <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-500">
-                            {{ $branch->statistics['total_active_batches'] ?? 0 }}
-                        </td>
-                        <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-500">
-                            {{ number_format($branch->statistics['total_fish_stock'] ?? 0, 0, ',', '.') }}
-                        </td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cabang</th>
+                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kolam</th>
+                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Batch Aktif</th>
+                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stok Ikan</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                @foreach($branches->take(5) as $branch)
+                <tr class="hover:bg-gray-50 transition-all duration-300 transform hover:scale-[1.01]">
+                    <td class="px-3 py-2 whitespace-nowrap text-sm font-medium text-gray-900">
+                        {{ $branch->name }}
+                    </td>
+                    <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-500">
+                        {{ $branch->statistics['total_ponds'] ?? 0 }}
+                    </td>
+                    <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-500">
+                        {{ $branch->statistics['total_active_batches'] ?? 0 }}
+                    </td>
+                    <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-500">
+                        {{ number_format($branch->statistics['total_fish_stock'] ?? 0, 0, ',', '.') }}
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
     </div>
 </div>
 
@@ -445,6 +563,8 @@
         <a href="{{ route('admin.users.create') }}" class="bg-yellow-50 rounded-lg p-4 hover:bg-yellow-100 transition-all duration-300 transform hover:scale-105 hover:shadow-lg card-glow">
             <div class="flex items-center">
                 <div class="bg-yellow-100 p-3 rounded-full mr-3 icon-rotate">
+                    <i class="fas fa-user-
+                <div class="bg-yellow-100 p-3 rounded-full mr-3 icon-rotate">
                     <i class="fas fa-user-plus text-yellow-600"></i>
                 </div>
                 <div>
@@ -487,6 +607,7 @@
         });
     });
 
+    // Chart Penjualan Bulanan
     const salesCtx = document.getElementById('salesChart').getContext('2d');
     const salesChart = new Chart(salesCtx, {
         type: 'line',
@@ -535,6 +656,7 @@
         }
     });
 
+    // Chart Distribusi Jenis Kolam (DIPERBAIKI - tidak terpotong)
     const pondTypesCtx = document.getElementById('pondTypesChart').getContext('2d');
     const pondTypesChart = new Chart(pondTypesCtx, {
         type: 'doughnut',
@@ -557,14 +679,39 @@
         },
         options: {
             responsive: true,
-            maintainAspectRatio: false,
+            maintainAspectRatio: true,
+            aspectRatio: 1.2,
+            layout: {
+                padding: {
+                    top: 10,
+                    bottom: 10,
+                    left: 10,
+                    right: 10
+                }
+            },
             plugins: {
                 legend: {
                     position: 'bottom',
                     labels: {
-                        padding: 20,
+                        padding: 15,
                         usePointStyle: true,
-                        pointStyle: 'circle'
+                        pointStyle: 'circle',
+                        font: {
+                            size: 12
+                        },
+                        boxWidth: 12,
+                        boxHeight: 12
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label || '';
+                            const value = context.parsed;
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = ((value / total) * 100).toFixed(1);
+                            return `${label}: ${value} (${percentage}%)`;
+                        }
                     }
                 }
             },
@@ -574,13 +721,15 @@
             },
             hover: {
                 animationDuration: 300
-            }
+            },
+            cutout: '60%',
+            radius: '80%'
         }
     });
 
     // Add loading animation to charts
     setTimeout(() => {
-        document.querySelectorAll('.chart-container').forEach(container => {
+        document.querySelectorAll('.chart-container, .doughnut-chart-container').forEach(container => {
             container.style.opacity = '0';
             container.style.transform = 'scale(0.9)';
             container.style.transition = 'all 0.6s ease';

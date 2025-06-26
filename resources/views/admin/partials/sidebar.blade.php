@@ -11,7 +11,7 @@
     </div>
 
     <!-- Navigation Menu - Scrollable -->
-    <nav class="mt-6 flex-1 overflow-y-auto custom-scrollbar">
+    <nav class="mt-6 flex-1 overflow-y-auto hidden-scrollbar">
         <div class="px-4">
             <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Menu Utama</p>
         </div>
@@ -121,24 +121,15 @@
 </div>
 
 <style>
-/* Custom Scrollbar */
-.custom-scrollbar::-webkit-scrollbar {
-    width: 6px;
+/* Hidden Scrollbar - Tetap bisa scroll tapi scrollbar tidak terlihat */
+.hidden-scrollbar {
+    /* Untuk Webkit browsers (Chrome, Safari, Edge) */
+    -ms-overflow-style: none;  /* Internet Explorer 10+ */
+    scrollbar-width: none;  /* Firefox */
 }
 
-.custom-scrollbar::-webkit-scrollbar-track {
-    background: #f1f5f9;
-    border-radius: 10px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb {
-    background: linear-gradient(180deg, #3b82f6, #1d4ed8);
-    border-radius: 10px;
-    transition: all 0.3s ease;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(180deg, #1d4ed8, #1e40af);
+.hidden-scrollbar::-webkit-scrollbar {
+    display: none;  /* Webkit browsers */
 }
 
 /* Custom Animations */
@@ -200,7 +191,7 @@
 .nav-item:nth-child(5) { animation-delay: 0.5s; }
 
 /* Smooth Scroll Behavior */
-.custom-scrollbar {
+.hidden-scrollbar {
     scroll-behavior: smooth;
 }
 
@@ -214,7 +205,7 @@
     }
     60% {
         transform: translateY(-5px);
-            }
+    }
 }
 
 .hover\:bounce:hover {
