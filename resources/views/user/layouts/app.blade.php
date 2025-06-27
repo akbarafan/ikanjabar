@@ -3,10 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'AquaCulture Dashboard') - Sistem Monitoring Perikanan</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- DataTables -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+
     <style>
         .gradient-bg {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -36,13 +45,12 @@
     </style>
     @stack('styles')
 </head>
-<body class="bg-gradient-to-br from-blue-50 via-cyan-50 to-teal-50 min-h-screen">
-    <div class="flex">
+<body class="bg-gray-50">
         <!-- Sidebar -->
         @include('user.partials.sidebar')
 
         <!-- Main Content -->
-        <div class="flex-1 ml-64">
+        <div class="lg:ml-64 min-h-screen flex flex-col">
             <!-- Navbar -->
             @include('user.partials.navbar')
 
@@ -54,7 +62,6 @@
             <!-- Footer -->
             @include('user.partials.footer')
         </div>
-    </div>
 
     @stack('scripts')
 </body>

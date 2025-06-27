@@ -90,13 +90,6 @@ class DatabaseSeeder extends Seeder
             'updated_at' => now()
         ]);
 
-        // Fish Stock Snapshots
-        DB::table('fish_stock_snapshots')->insert([
-            'fish_batch_id' => FishBatch::first()->id,
-            'current_stock' => 980,
-            'updated_at' => now()
-        ]);
-
         // Fish Growth Logs
         DB::table('fish_growth_logs')->insert([
             'fish_batch_id' => FishBatch::first()->id,

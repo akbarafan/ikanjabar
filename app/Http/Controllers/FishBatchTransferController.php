@@ -1,14 +1,15 @@
 <?php
 
-namespace App\Models;
+namespace  App\Http\Controllers;
 
+use  App\Http\Controllers\Controller;
 use App\Models\FishBatchTransfer;
 use App\Models\FishBatch;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
-class FishBatchTransfer extends Model
+class FishBatchTransferController extends Controller
 {
     public function index()
     {

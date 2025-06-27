@@ -8,17 +8,34 @@ use App\Http\Controllers\FishBatchController;
 use App\Http\Controllers\WaterQualityController;
 use App\Http\Controllers\FishGrowthController;
 use App\Http\Controllers\FeedingController;
+use App\Http\Controllers\FishTypeController;
 use App\Http\Controllers\MortalityController;
 use App\Http\Controllers\SalesController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return redirect()->route('user.dashboard');
-});
+Route::get('/', [UserDashboardController::class, 'index'])->name('dashboard');
 
 Route::get('/dashboard', [UserDashboardController::class, 'index'])->name('user.dashboard');
+
+// Fish Types Routes
+Route::prefix('fish-types')->name('fish-types.')->group(function () {
+    Route::get('/', [FishTypeController::class, 'index'])->name('index');
+    Route::get('/data', [FishTypeController::class, 'getData'])->name('data');
+    Route::post('/', [FishTypeController::class, 'store'])->name('store');
+    Route::get('/{id}', [FishTypeController::class, 'show'])->name('show');
+    Route::put('/{id}', [FishTypeController::class, 'update'])->name('update');
+    Route::delete('/{id}', [FishTypeController::class, 'destroy'])->name('destroy');
+});
+
+// Ponds Routes
+Route::get('/ponds', [PondController::class, 'index'])->name('ponds.index');
+Route::post('/ponds', [PondController::class, 'store'])->name('ponds.store');
+Route::get('/ponds/{id}', [PondController::class, 'show'])->name('ponds.show');
+Route::put('/ponds/{id}', [PondController::class, 'update'])->name('ponds.update');
+Route::delete('/ponds/{id}', [PondController::class, 'destroy'])->name('ponds.destroy');
+
 
 Route::prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
