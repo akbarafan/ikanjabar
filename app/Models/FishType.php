@@ -12,53 +12,60 @@ class FishType extends Model
     protected $fillable = [
         'branch_id',
         'name',
-        'description',
+        'description'
     ];
 
-    // Relationship ke Branch
-    public function branch()
-    {
-        return $this->belongsTo(Branch::class);
-    }
-
+    /**
+     * Relationship with FishBatch
+     */
     public function fishBatches()
     {
         return $this->hasMany(FishBatch::class);
     }
 
-    // Perhitungan total batch per jenis ikan
+    /**
+     * Get total batches count
+     */
     public function getTotalBatchesAttribute()
     {
         return $this->fishBatches()->count();
     }
 
-    // Perhitungan rata-rata pertumbuhan per jenis ikan
+    /**
+     * Get average growth rate
+     */
     public function getAverageGrowthRateAttribute()
     {
-        $allGrowthLogs = collect();
+        $totalWeight = 0;
+        $totalLogs = 0;
+
         foreach ($this->fishBatches as $batch) {
-            $allGrowthLogs = $allGrowthLogs->merge($batch->fishGrowthLogs);
+            if ($batch->fishGrowthLogs) {
+                foreach ($batch->fishGrowthLogs as $log) {
+                    $totalWeight += $log->avg_weight_gram;
+                    $totalLogs++;
+                }
+            }
         }
 
-        if ($allGrowthLogs->isEmpty()) return null;
-
-        return [
-            'avg_weight_growth' => round($allGrowthLogs->avg('avg_weight_gram'), 2),
-            'avg_length_growth' => round($allGrowthLogs->avg('avg_length_cm'), 2),
-        ];
+        return $totalLogs > 0 ? round($totalWeight / $totalLogs, 2) : 0;
     }
 
-    // Perhitungan tingkat mortalitas per jenis ikan
+    /**
+     * Get mortality rate
+     */
     public function getMortalityRateAttribute()
     {
         $totalInitial = $this->fishBatches()->sum('initial_count');
         $totalDeaths = 0;
 
         foreach ($this->fishBatches as $batch) {
-            $totalDeaths += $batch->mortalities()->sum('dead_count');
+            if ($batch->mortalities) {
+                $totalDeaths += $batch->mortalities()->sum('dead_count');
+            }
         }
 
-        if ($totalInitial == 0) return 0;
-        return round(($totalDeaths / $totalInitial) * 100, 2);
+        return $totalInitial > 0 ? round(($totalDeaths / $totalInitial) * 100, 2) : 0;
     }
 }
+
