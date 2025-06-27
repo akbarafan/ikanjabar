@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('fish_types', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('branch_id')->constrained('branches');
             $table->string('name', 100);
             $table->text('description')->nullable();
             $table->timestamps();

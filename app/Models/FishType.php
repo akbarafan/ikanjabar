@@ -10,9 +10,16 @@ class FishType extends Model
     use HasFactory;
 
     protected $fillable = [
+        'branch_id',
         'name',
         'description',
     ];
+
+    // Relationship ke Branch
+    public function branch()
+    {
+        return $this->belongsTo(Branch::class);
+    }
 
     public function fishBatches()
     {

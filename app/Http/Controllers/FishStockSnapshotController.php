@@ -1,10 +1,21 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Models;
 
-use Illuminate\Http\Request;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
-class FishStockSnapshotController extends Controller
+class FishStockSnapshot extends Model
 {
-    //
+    use HasFactory;
+
+    protected $fillable = [
+        'fish_batch_id',
+        'current_stock'
+    ];
+
+    public function fishBatch()
+    {
+        return $this->belongsTo(FishBatch::class);
+    }
 }

@@ -21,7 +21,7 @@ class DatabaseSeeder extends Seeder
         DB::table('branches')->insert([
             'name' => 'Cabang Utama',
             'location' => 'Jl. Laut Selatan No. 88',
-            'contact_person' => 'Pak Budi',
+            'contact_person' => '081234567890',
             'pic_name' => 'Budi Santoso',
             'created_at' => now(),
             'updated_at' => now()
@@ -70,6 +70,7 @@ class DatabaseSeeder extends Seeder
 
         // Fish Types
         DB::table('fish_types')->insert([
+            'branch_id' => Branch::first()->id,
             'name' => 'Nila Merah',
             'description' => 'Jenis ikan nila unggul',
             'created_at' => now(),
