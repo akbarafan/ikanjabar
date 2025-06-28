@@ -66,10 +66,9 @@
                     <span>Pertumbuhan</span>
                 </a>
 
-                <a href="#" class="nav-item flex items-center px-4 py-3 text-gray-400 cursor-not-allowed opacity-60">
+                <a href="{{ route('feedings.index') }}" class="nav-item flex items-center px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-all duration-200 {{ request()->routeIs('feedings.*') ? 'bg-blue-50 text-blue-600 border-r-2 border-blue-600' : '' }}">
                     <i class="fas fa-utensils mr-3 w-5 text-center"></i>
                     <span>Pemberian Pakan</span>
-                    <span class="ml-auto text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded-full">Soon</span>
                 </a>
 
                 <a href="#" class="nav-item flex items-center px-4 py-3 text-gray-400 cursor-not-allowed opacity-60">

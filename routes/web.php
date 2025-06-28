@@ -58,6 +58,13 @@ Route::get('/fish-growth/{id}', [FishGrowthLogController::class, 'show'])->name(
 Route::put('/fish-growth/{id}', [FishGrowthLogController::class, 'update'])->name('fish-growth.update');
 Route::delete('/fish-growth/{id}', [FishGrowthLogController::class, 'destroy'])->name('fish-growth.destroy');
 
+// Feeding Routes
+Route::get('/feedings', [FeedingController::class, 'index'])->name('feedings.index');
+Route::post('/feedings', [FeedingController::class, 'store'])->name('feedings.store');
+Route::get('/feedings/{id}', [FeedingController::class, 'show'])->name('feedings.show');
+Route::put('/feedings/{id}', [FeedingController::class, 'update'])->name('feedings.update');
+Route::delete('/feedings/{id}', [FeedingController::class, 'destroy'])->name('feedings.destroy');
+
 
 Route::prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');

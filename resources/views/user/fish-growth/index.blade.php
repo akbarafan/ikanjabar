@@ -77,11 +77,11 @@
                 <thead class="bg-gray-50">
                     <tr>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Batch Info</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dibuat</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Minggu</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Berat (g)</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Panjang (cm)</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pertumbuhan</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal</th>
                         <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
                     </tr>
                 </thead>
@@ -94,6 +94,12 @@
                                 <div class="text-sm text-gray-500">{{ $log->pond_name }} ({{ $log->pond_code }})</div>
                                 <div class="text-xs text-gray-400">Batch #{{ $log->batch_id }}</div>
                             </div>
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-500">
+                            {{ \Carbon\Carbon::parse($log->date_recorded)->format('d M Y') }}
+                            @if($log->created_by_name)
+                            <div class="text-xs text-gray-400">{{ $log->created_by_name }}</div>
+                            @endif
                         </td>
                         <td class="px-6 py-4">
                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
@@ -130,12 +136,6 @@
                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
                                 <i class="fas fa-circle mr-1"></i>Awal
                             </span>
-                            @endif
-                        </td>
-                        <td class="px-6 py-4 text-sm text-gray-500">
-                            {{ \Carbon\Carbon::parse($log->date_recorded)->format('d M Y') }}
-                            @if($log->created_by_name)
-                            <div class="text-xs text-gray-400">{{ $log->created_by_name }}</div>
                             @endif
                         </td>
                         <td class="px-6 py-4 text-right text-sm font-medium">

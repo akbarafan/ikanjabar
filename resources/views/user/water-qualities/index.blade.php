@@ -75,12 +75,12 @@
                 <thead class="bg-gray-50">
                     <tr>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kolam</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dibuat</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">pH</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Suhu (°C)</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">DO (mg/L)</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amonia</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal</th>
                         <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
                     </tr>
                 </thead>
@@ -92,6 +92,12 @@
                                 <div class="text-sm font-medium text-gray-900">{{ $wq->pond_name }}</div>
                                 <div class="text-sm text-gray-500">{{ $wq->pond_code }}</div>
                             </div>
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-900">
+                            {{ \Carbon\Carbon::parse($wq->date_recorded)->format('d M Y') }}
+                            @if($wq->created_by_name)
+                            <div class="text-xs text-gray-400">{{ $wq->created_by_name }}</div>
+                            @endif
                         </td>
                         <td class="px-6 py-4">
                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
@@ -135,12 +141,6 @@
                                 {{ $wq->overall_status === 'good' ? 'Baik' :
                                    ($wq->overall_status === 'warning' ? 'Perhatian' : 'Buruk') }}
                             </span>
-                        </td>
-                        <td class="px-6 py-4 text-sm text-gray-900">
-                            {{ \Carbon\Carbon::parse($wq->date_recorded)->format('d M Y') }}
-                            @if($wq->created_by_name)
-                            <div class="text-xs text-gray-400">{{ $wq->created_by_name }}</div>
-                            @endif
                         </td>
                         <td class="px-6 py-4 text-right text-sm font-medium">
                             <div class="flex items-center justify-end space-x-2">

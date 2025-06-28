@@ -1,6 +1,6 @@
 @extends('user.layouts.app')
 
-@section('page-title', 'Batch Ikan')
+@section('page-title', 'Pemberian Pakan')
 
 @section('content')
 <div class="space-y-6">
@@ -9,11 +9,11 @@
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
             <div class="flex items-center">
                 <div class="p-3 rounded-full bg-blue-100">
-                    <i class="fas fa-layer-group text-blue-600 text-xl"></i>
+                    <i class="fas fa-utensils text-blue-600 text-xl"></i>
                 </div>
                 <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-600">Total Batch</p>
-                    <p class="text-2xl font-bold text-gray-900">{{ $stats['total_batches'] }}</p>
+                    <p class="text-sm font-medium text-gray-600">Total Pemberian</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ $stats['total_feedings'] }}</p>
                 </div>
             </div>
         </div>
@@ -21,11 +21,12 @@
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
             <div class="flex items-center">
                 <div class="p-3 rounded-full bg-green-100">
-                    <i class="fas fa-play-circle text-green-600 text-xl"></i>
+                    <i class="fas fa-weight text-green-600 text-xl"></i>
                 </div>
                 <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-600">Batch Aktif</p>
-                    <p class="text-2xl font-bold text-gray-900">{{ $stats['active_batches'] }}</p>
+                    <p class="text-sm font-medium text-gray-600">Total Pakan</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ number_format($stats['total_feed_kg'], 1) }}</p>
+                    <p class="text-xs text-gray-500">KG</p>
                 </div>
             </div>
         </div>
@@ -33,12 +34,12 @@
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
             <div class="flex items-center">
                 <div class="p-3 rounded-full bg-purple-100">
-                    <i class="fas fa-fish text-purple-600 text-xl"></i>
+                    <i class="fas fa-calendar-day text-purple-600 text-xl"></i>
                 </div>
                 <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-600">Stok Saat Ini</p>
-                    <p class="text-2xl font-bold text-gray-900">{{ number_format($stats['total_current_stock']) }}</p>
-                    <p class="text-xs text-gray-500">Ekor</p>
+                    <p class="text-sm font-medium text-gray-600">Rata-rata/Hari</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ number_format($stats['avg_feed_per_day'], 1) }}</p>
+                    <p class="text-xs text-gray-500">KG</p>
                 </div>
             </div>
         </div>
@@ -46,28 +47,27 @@
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
             <div class="flex items-center">
                 <div class="p-3 rounded-full bg-orange-100">
-                    <i class="fas fa-calendar-alt text-orange-600 text-xl"></i>
+                    <i class="fas fa-layer-group text-orange-600 text-xl"></i>
                 </div>
                 <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-600">Rata-rata Umur</p>
-                    <p class="text-2xl font-bold text-gray-900">{{ number_format($stats['avg_age_days']) }}</p>
-                    <p class="text-xs text-gray-500">Hari</p>
+                    <p class="text-sm font-medium text-gray-600">Batch Aktif</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ $stats['active_batches'] }}</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Fish Batches Table -->
+    <!-- Feedings Table -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-100">
         <div class="p-6 border-b border-gray-200">
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                    <h3 class="text-lg font-semibold text-gray-900">Daftar Batch Ikan</h3>
-                    <p class="text-sm text-gray-600 mt-1">Kelola batch ikan di cabang {{ $branchInfo->name }}</p>
+                    <h3 class="text-lg font-semibold text-gray-900">Data Pemberian Pakan</h3>
+                    <p class="text-sm text-gray-600 mt-1">Kelola pemberian pakan di cabang {{ $branchInfo->name }}</p>
                 </div>
                 <button onclick="openAddModal()" class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
                     <i class="fas fa-plus mr-2"></i>
-                    Tambah Batch
+                    Tambah Pemberian Pakan
                 </button>
             </div>
         </div>
@@ -78,71 +78,57 @@
                     <tr>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Batch Info</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dibuat</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kolam</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jenis Ikan</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stok</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Umur</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jenis Pakan</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jumlah</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Per Ekor</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Umur Batch</th>
                         <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
-                    @forelse($fishBatches as $batch)
+                    @forelse($feedings as $feeding)
                     <tr class="hover:bg-gray-50 transition-colors">
                         <td class="px-6 py-4">
                             <div>
-                                <div class="text-sm font-medium text-gray-900">Batch #{{ $batch->id }}</div>
-                                <div class="text-sm text-gray-500">Mulai: {{ \Carbon\Carbon::parse($batch->date_start)->format('d M Y') }}</div>
-                                @if($batch->notes)
-                                <div class="text-xs text-gray-400 mt-1">{{ Str::limit($batch->notes, 30) }}</div>
+                                <div class="text-sm font-medium text-gray-900">{{ $feeding->fish_type_name }}</div>
+                                <div class="text-sm text-gray-500">{{ $feeding->pond_name }} ({{ $feeding->pond_code }})</div>
+                                <div class="text-xs text-gray-400">Batch #{{ $feeding->batch_id }}</div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="text-sm text-gray-900">{{ \Carbon\Carbon::parse($feeding->date)->format('d M Y') }}</div>
+                            @if($feeding->created_by_name)
+                                <div class="text-xs text-gray-500">{{ $feeding->created_by_name }}</div>
                                 @endif
-                            </div>
-                        </td>
-                        <td class="px-6 py-4 text-sm text-gray-500">
-                            {{ \Carbon\Carbon::parse($batch->created_at)->format('d M Y') }}
-                            @if($batch->created_by_name)
-                            <div class="text-xs text-gray-400">{{ $batch->created_by_name }}</div>
-                            @endif
                         </td>
                         <td class="px-6 py-4">
-                            <div class="text-sm font-medium text-gray-900">{{ $batch->pond_name }}</div>
-                            <div class="text-sm text-gray-500">{{ $batch->pond_code }}</div>
-                        </td>
-                        <td class="px-6 py-4">
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                {{ $batch->fish_type_name }}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                {{ $feeding->feed_type }}
                             </span>
                         </td>
                         <td class="px-6 py-4">
-                            <div class="text-sm text-gray-900">
-                                <span class="font-medium">{{ number_format($batch->current_stock) }}</span> / {{ number_format($batch->initial_count) }}
-                            </div>
-                            <div class="text-xs text-gray-500">Saat ini / Awal</div>
+                            <div class="text-sm font-medium text-gray-900">{{ number_format($feeding->feed_amount_kg, 2) }} kg</div>
+                            <div class="text-xs text-gray-500">{{ number_format($feeding->feed_amount_kg * 1000) }} gram</div>
                         </td>
                         <td class="px-6 py-4">
-                            <div class="text-sm text-gray-900">{{ $batch->age_days }} hari</div>
-                            <div class="text-xs text-gray-500">{{ $batch->age_weeks }} minggu</div>
+                            <div class="text-sm text-gray-900">{{ number_format($feeding->feed_per_fish, 1) }}g</div>
+                            <div class="text-xs text-gray-500">{{ number_format($feeding->current_stock) }} ekor</div>
                         </td>
                         <td class="px-6 py-4">
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                                {{ $batch->status === 'new' ? 'bg-green-100 text-green-800' :
-                                   ($batch->status === 'growing' ? 'bg-yellow-100 text-yellow-800' :
-                                   ($batch->status === 'mature' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800')) }}">
-                                <div class="w-1.5 h-1.5 rounded-full mr-1.5
-                                    {{ $batch->status === 'new' ? 'bg-green-400' :
-                                       ($batch->status === 'growing' ? 'bg-yellow-400' :
-                                       ($batch->status === 'mature' ? 'bg-blue-400' : 'bg-gray-400')) }}"></div>
-                                {{ $batch->status === 'new' ? 'Baru' :
-                                   ($batch->status === 'growing' ? 'Berkembang' :
-                                   ($batch->status === 'mature' ? 'Dewasa' : 'Selesai')) }}
-                            </span>
+                            <div class="text-sm text-gray-900">{{ $feeding->batch_age_days }} hari</div>
+                            <div class="text-xs text-gray-500">{{ floor($feeding->batch_age_days / 7) }} minggu</div>
                         </td>
                         <td class="px-6 py-4 text-right text-sm font-medium">
                             <div class="flex items-center justify-end space-x-2">
-                                <button onclick="editBatch({{ $batch->id }})" class="text-blue-600 hover:text-blue-900 p-1">
+                                @if($feeding->notes)
+                                <button onclick="showNotes('{{ addslashes($feeding->notes) }}')" class="text-gray-600 hover:text-gray-900 p-1" title="Lihat Catatan">
+                                    <i class="fas fa-sticky-note"></i>
+                                </button>
+                                @endif
+                                <button onclick="editFeeding({{ $feeding->id }})" class="text-blue-600 hover:text-blue-900 p-1">
                                     <i class="fas fa-edit"></i>
                                 </button>
-                                <button onclick="deleteBatch({{ $batch->id }}, 'Batch #{{ $batch->id }}')" class="text-red-600 hover:text-red-900 p-1">
+                                <button onclick="deleteFeeding({{ $feeding->id }}, '{{ $feeding->fish_type_name }} - {{ \Carbon\Carbon::parse($feeding->date)->format('d M Y') }}')" class="text-red-600 hover:text-red-900 p-1">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </div>
@@ -150,14 +136,14 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="8" class="px-6 py-12 text-center">
+                        <td colspan="7" class="px-6 py-12 text-center">
                             <div class="flex flex-col items-center">
-                                <i class="fas fa-layer-group text-gray-300 text-4xl mb-4"></i>
-                                <h3 class="text-lg font-medium text-gray-900 mb-2">Belum ada batch ikan</h3>
-                                <p class="text-gray-500 mb-4">Mulai dengan menambahkan batch ikan pertama untuk cabang ini.</p>
+                                <i class="fas fa-utensils text-gray-300 text-4xl mb-4"></i>
+                                <h3 class="text-lg font-medium text-gray-900 mb-2">Belum ada data pemberian pakan</h3>
+                                <p class="text-gray-500 mb-4">Mulai dengan menambahkan data pemberian pakan pertama.</p>
                                 <button onclick="openAddModal()" class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
                                     <i class="fas fa-plus mr-2"></i>
-                                    Tambah Batch
+                                    Tambah Pemberian Pakan
                                 </button>
                             </div>
                         </td>
@@ -170,63 +156,57 @@
 </div>
 
 <!-- Add/Edit Modal -->
-<div id="batchModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 hidden">
+<div id="feedingModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 hidden">
     <div class="relative top-20 mx-auto p-5 border w-full max-w-lg shadow-lg rounded-lg bg-white">
         <div class="mt-3">
             <div class="flex items-center justify-between mb-4">
-                <h3 id="modalTitle" class="text-lg font-medium text-gray-900">Tambah Batch Ikan</h3>
+                <h3 id="modalTitle" class="text-lg font-medium text-gray-900">Tambah Pemberian Pakan</h3>
                 <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
 
-            <form id="batchForm" class="space-y-4">
-                <input type="hidden" id="batchId" name="id">
+            <form id="feedingForm" class="space-y-4">
+                <input type="hidden" id="feedingId" name="id">
 
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label for="pond_id" class="block text-sm font-medium text-gray-700 mb-1">Kolam *</label>
-                        <select id="pond_id" name="pond_id" required
-                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                            <option value="">Pilih Kolam</option>
-                            @foreach($ponds as $pond)
-                            <option value="{{ $pond->id }}">{{ $pond->name }} ({{ $pond->code }})</option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div>
-                        <label for="fish_type_id" class="block text-sm font-medium text-gray-700 mb-1">Jenis Ikan *</label>
-                        <select id="fish_type_id" name="fish_type_id" required
-                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                            <option value="">Pilih Jenis Ikan</option>
-                            @foreach($fishTypes as $fishType)
-                            <option value="{{ $fishType->id }}">{{ $fishType->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
+                <div>
+                    <label for="fish_batch_id" class="block text-sm font-medium text-gray-700 mb-1">Batch Ikan *</label>
+                    <select id="fish_batch_id" name="fish_batch_id" required
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <option value="">Pilih Batch Ikan</option>
+                        @foreach($fishBatches as $batch)
+                        <option value="{{ $batch->id }}">{{ $batch->fish_type_name }} - {{ $batch->pond_name }}</option>
+                        @endforeach
+                    </select>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label for="date_start" class="block text-sm font-medium text-gray-700 mb-1">Tanggal Mulai *</label>
-                        <input type="date" id="date_start" name="date_start" required max="{{ date('Y-m-d') }}"
+                        <label for="date" class="block text-sm font-medium text-gray-700 mb-1">Tanggal *</label>
+                        <input type="date" id="date" name="date" required max="{{ date('Y-m-d') }}"
                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                     </div>
 
                     <div>
-                        <label for="initial_count" class="block text-sm font-medium text-gray-700 mb-1">Jumlah Awal *</label>
-                        <input type="number" id="initial_count" name="initial_count" required min="1"
+                        <label for="feed_type" class="block text-sm font-medium text-gray-700 mb-1">Jenis Pakan *</label>
+                        <input type="text" id="feed_type" name="feed_type" required
                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                               placeholder="1000">
+                               placeholder="Contoh: Pelet 781-2">
                     </div>
+                </div>
+
+                <div>
+                    <label for="feed_amount_kg" class="block text-sm font-medium text-gray-700 mb-1">Jumlah Pakan (kg) *</label>
+                    <input type="number" id="feed_amount_kg" name="feed_amount_kg" required min="0.1" step="0.1"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                           placeholder="5.5">
                 </div>
 
                 <div>
                     <label for="notes" class="block text-sm font-medium text-gray-700 mb-1">Catatan</label>
                     <textarea id="notes" name="notes" rows="3"
                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                              placeholder="Catatan tambahan tentang batch ini..."></textarea>
+                              placeholder="Catatan tambahan..."></textarea>
                 </div>
 
                 <div class="flex items-center justify-end space-x-3 pt-4">
@@ -245,6 +225,26 @@
     </div>
 </div>
 
+<!-- Notes Modal -->
+<div id="notesModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 hidden">
+    <div class="relative top-20 mx-auto p-5 border w-full max-w-md shadow-lg rounded-lg bg-white">
+        <div class="mt-3">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-medium text-gray-900">Catatan</h3>
+                <button onclick="closeNotesModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div id="notesContent" class="text-sm text-gray-700 whitespace-pre-wrap"></div>
+            <div class="flex justify-end mt-4">
+                <button onclick="closeNotesModal()" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
+                    Tutup
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Delete Confirmation Modal -->
 <div id="deleteModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 hidden">
     <div class="relative top-20 mx-auto p-5 border w-full max-w-md shadow-lg rounded-lg bg-white">
@@ -252,9 +252,9 @@
             <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
                 <i class="fas fa-exclamation-triangle text-red-600"></i>
             </div>
-            <h3 class="text-lg font-medium text-gray-900 mb-2">Hapus Batch Ikan</h3>
+            <h3 class="text-lg font-medium text-gray-900 mb-2">Hapus Data Pemberian Pakan</h3>
             <p class="text-sm text-gray-500 mb-4">
-                Apakah Anda yakin ingin menghapus <strong id="deleteBatchName"></strong>?
+                Apakah Anda yakin ingin menghapus data <strong id="deleteFeedingName"></strong>?
                 Tindakan ini tidak dapat dibatalkan.
             </p>
             <div class="flex items-center justify-center space-x-3">
@@ -273,22 +273,22 @@
 </div>
 
 <script>
-let currentBatchId = null;
+let currentFeedingId = null;
 let deleteId = null;
 
 // Modal functions
 function openAddModal() {
-    document.getElementById('modalTitle').textContent = 'Tambah Batch Ikan';
+    document.getElementById('modalTitle').textContent = 'Tambah Pemberian Pakan';
     document.getElementById('submitText').textContent = 'Simpan';
-    document.getElementById('batchForm').reset();
-    document.getElementById('batchId').value = '';
-    currentBatchId = null;
-    document.getElementById('batchModal').classList.remove('hidden');
-    document.getElementById('pond_id').focus();
+    document.getElementById('feedingForm').reset();
+    document.getElementById('feedingId').value = '';
+    currentFeedingId = null;
+    document.getElementById('feedingModal').classList.remove('hidden');
+    document.getElementById('fish_batch_id').focus();
 }
 
 function closeModal() {
-    document.getElementById('batchModal').classList.add('hidden');
+    document.getElementById('feedingModal').classList.add('hidden');
 }
 
 function closeDeleteModal() {
@@ -296,25 +296,34 @@ function closeDeleteModal() {
     deleteId = null;
 }
 
+function showNotes(notes) {
+    document.getElementById('notesContent').textContent = notes;
+    document.getElementById('notesModal').classList.remove('hidden');
+}
+
+function closeNotesModal() {
+    document.getElementById('notesModal').classList.add('hidden');
+}
+
 // CRUD functions
-function editBatch(id) {
-    currentBatchId = id;
-    document.getElementById('modalTitle').textContent = 'Edit Batch Ikan';
+function editFeeding(id) {
+    currentFeedingId = id;
+    document.getElementById('modalTitle').textContent = 'Edit Pemberian Pakan';
     document.getElementById('submitText').textContent = 'Perbarui';
 
-    document.getElementById('batchModal').classList.remove('hidden');
+    document.getElementById('feedingModal').classList.remove('hidden');
 
-    fetch(`/fish-batches/${id}`)
+    fetch(`/feedings/${id}`)
         .then(response => response.json())
         .then(result => {
             if (result.success) {
-                document.getElementById('batchId').value = result.data.id;
-                document.getElementById('pond_id').value = result.data.pond_id;
-                document.getElementById('fish_type_id').value = result.data.fish_type_id;
-                document.getElementById('date_start').value = result.data.date_start;
-                document.getElementById('initial_count').value = result.data.initial_count;
+                document.getElementById('feedingId').value = result.data.id;
+                document.getElementById('fish_batch_id').value = result.data.fish_batch_id;
+                document.getElementById('date').value = result.data.date;
+                document.getElementById('feed_type').value = result.data.feed_type;
+                document.getElementById('feed_amount_kg').value = result.data.feed_amount_kg;
                 document.getElementById('notes').value = result.data.notes || '';
-                document.getElementById('pond_id').focus();
+                document.getElementById('fish_batch_id').focus();
             } else {
                 showNotification('Error: ' + result.message, 'error');
                 closeModal();
@@ -322,14 +331,14 @@ function editBatch(id) {
         })
         .catch(error => {
             console.error('Error:', error);
-            showNotification('Gagal memuat data batch', 'error');
+            showNotification('Gagal memuat data pemberian pakan', 'error');
             closeModal();
         });
 }
 
-function deleteBatch(id, name) {
+function deleteFeeding(id, name) {
     deleteId = id;
-    document.getElementById('deleteBatchName').textContent = name;
+    document.getElementById('deleteFeedingName').textContent = name;
     document.getElementById('deleteModal').classList.remove('hidden');
 }
 
@@ -344,7 +353,7 @@ function confirmDelete() {
     deleteLoader.classList.remove('hidden');
     deleteBtn.disabled = true;
 
-    fetch(`/fish-batches/${deleteId}`, {
+    fetch(`/feedings/${deleteId}`, {
         method: 'DELETE',
         headers: {
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
@@ -362,7 +371,7 @@ function confirmDelete() {
     })
     .catch(error => {
         console.error('Error:', error);
-        showNotification('Gagal menghapus batch', 'error');
+        showNotification('Gagal menghapus data pemberian pakan', 'error');
     })
     .finally(() => {
         deleteText.textContent = 'Hapus';
@@ -373,7 +382,7 @@ function confirmDelete() {
 }
 
 // Form submission
-document.getElementById('batchForm').addEventListener('submit', function(e) {
+document.getElementById('feedingForm').addEventListener('submit', function(e) {
     e.preventDefault();
 
     const submitBtn = document.getElementById('submitBtn');
@@ -381,19 +390,19 @@ document.getElementById('batchForm').addEventListener('submit', function(e) {
     const submitLoader = document.getElementById('submitLoader');
 
     const formData = new FormData(this);
-    const isEdit = currentBatchId !== null;
+    const isEdit = currentFeedingId !== null;
 
     submitText.textContent = isEdit ? 'Memperbarui...' : 'Menyimpan...';
     submitLoader.classList.remove('hidden');
     submitBtn.disabled = true;
 
-    const url = isEdit ? `/fish-batches/${currentBatchId}` : '/fish-batches';
+    const url = isEdit ? `/feedings/${currentFeedingId}` : '/feedings';
 
     const data = {
-        pond_id: formData.get('pond_id'),
-        fish_type_id: formData.get('fish_type_id'),
-        date_start: formData.get('date_start'),
-        initial_count: formData.get('initial_count'),
+        fish_batch_id: formData.get('fish_batch_id'),
+        date: formData.get('date'),
+        feed_type: formData.get('feed_type'),
+        feed_amount_kg: formData.get('feed_amount_kg'),
         notes: formData.get('notes')
     };
 
@@ -467,11 +476,12 @@ document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
         closeModal();
         closeDeleteModal();
+        closeNotesModal();
     }
 });
 
 // Close modals when clicking outside
-document.getElementById('batchModal').addEventListener('click', function(e) {
+document.getElementById('feedingModal').addEventListener('click', function(e) {
     if (e.target === this) {
         closeModal();
     }
@@ -480,6 +490,12 @@ document.getElementById('batchModal').addEventListener('click', function(e) {
 document.getElementById('deleteModal').addEventListener('click', function(e) {
     if (e.target === this) {
         closeDeleteModal();
+    }
+});
+
+document.getElementById('notesModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeNotesModal();
     }
 });
 </script>
