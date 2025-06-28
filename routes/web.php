@@ -8,6 +8,7 @@ use App\Http\Controllers\FishBatchController;
 use App\Http\Controllers\WaterQualityController;
 use App\Http\Controllers\FishGrowthController;
 use App\Http\Controllers\FeedingController;
+use App\Http\Controllers\FishGrowthLogController;
 use App\Http\Controllers\FishTypeController;
 use App\Http\Controllers\MortalityController;
 use App\Http\Controllers\SalesController;
@@ -49,6 +50,13 @@ Route::post('/water-qualities', [WaterQualityController::class, 'store'])->name(
 Route::get('/water-qualities/{id}', [WaterQualityController::class, 'show'])->name('water-qualities.show');
 Route::put('/water-qualities/{id}', [WaterQualityController::class, 'update'])->name('water-qualities.update');
 Route::delete('/water-qualities/{id}', [WaterQualityController::class, 'destroy'])->name('water-qualities.destroy');
+
+// Fish Growth Routes
+Route::get('/fish-growth', [FishGrowthLogController::class, 'index'])->name('fish-growth.index');
+Route::post('/fish-growth', [FishGrowthLogController::class, 'store'])->name('fish-growth.store');
+Route::get('/fish-growth/{id}', [FishGrowthLogController::class, 'show'])->name('fish-growth.show');
+Route::put('/fish-growth/{id}', [FishGrowthLogController::class, 'update'])->name('fish-growth.update');
+Route::delete('/fish-growth/{id}', [FishGrowthLogController::class, 'destroy'])->name('fish-growth.destroy');
 
 
 Route::prefix('admin')->name('admin.')->group(function () {

@@ -1,6 +1,6 @@
 @extends('user.layouts.app')
 
-@section('page-title', 'Kualitas Air')
+@section('page-title', 'Pertumbuhan Ikan')
 
 @section('content')
 <div class="space-y-6">
@@ -9,7 +9,7 @@
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
             <div class="flex items-center">
                 <div class="p-3 rounded-full bg-blue-100">
-                    <i class="fas fa-tint text-blue-600 text-xl"></i>
+                    <i class="fas fa-chart-line text-blue-600 text-xl"></i>
                 </div>
                 <div class="ml-4">
                     <p class="text-sm font-medium text-gray-600">Total Record</p>
@@ -21,23 +21,12 @@
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
             <div class="flex items-center">
                 <div class="p-3 rounded-full bg-green-100">
-                    <i class="fas fa-calendar-day text-green-600 text-xl"></i>
+                    <i class="fas fa-weight text-green-600 text-xl"></i>
                 </div>
                 <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-600">Hari Ini</p>
-                    <p class="text-2xl font-bold text-gray-900">{{ $stats['records_today'] }}</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-            <div class="flex items-center">
-                <div class="p-3 rounded-full bg-emerald-100">
-                    <i class="fas fa-check-circle text-emerald-600 text-xl"></i>
-                </div>
-                <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-600">Kualitas Baik</p>
-                    <p class="text-2xl font-bold text-gray-900">{{ $stats['good_quality'] }}</p>
+                    <p class="text-sm font-medium text-gray-600">Rata-rata Berat</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ number_format($stats['avg_weight'], 1) }}</p>
+                    <p class="text-xs text-gray-500">Gram</p>
                 </div>
             </div>
         </div>
@@ -45,23 +34,36 @@
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
             <div class="flex items-center">
                 <div class="p-3 rounded-full bg-purple-100">
-                    <i class="fas fa-swimming-pool text-purple-600 text-xl"></i>
+                    <i class="fas fa-ruler text-purple-600 text-xl"></i>
                 </div>
                 <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-600">Kolam Terpantau</p>
-                    <p class="text-2xl font-bold text-gray-900">{{ $stats['monitored_ponds'] }}</p>
+                    <p class="text-sm font-medium text-gray-600">Rata-rata Panjang</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ number_format($stats['avg_length'], 1) }}</p>
+                    <p class="text-xs text-gray-500">CM</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-orange-100">
+                    <i class="fas fa-layer-group text-orange-600 text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Batch Aktif</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ $stats['active_batches'] }}</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Water Quality Table -->
+    <!-- Fish Growth Table -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-100">
         <div class="p-6 border-b border-gray-200">
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                    <h3 class="text-lg font-semibold text-gray-900">Data Kualitas Air</h3>
-                    <p class="text-sm text-gray-600 mt-1">Monitor kualitas air kolam di cabang {{ $branchInfo->name }}</p>
+                    <h3 class="text-lg font-semibold text-gray-900">Data Pertumbuhan Ikan</h3>
+                    <p class="text-sm text-gray-600 mt-1">Monitor pertumbuhan ikan di cabang {{ $branchInfo->name }}</p>
                 </div>
                 <button onclick="openAddModal()" class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
                     <i class="fas fa-plus mr-2"></i>
@@ -74,80 +76,74 @@
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
                     <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kolam</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">pH</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Suhu (°C)</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">DO (mg/L)</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amonia</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Batch Info</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Minggu</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Berat (g)</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Panjang (cm)</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pertumbuhan</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal</th>
                         <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
-                    @forelse($waterQualities as $wq)
+                    @forelse($growthLogs as $log)
                     <tr class="hover:bg-gray-50 transition-colors">
                         <td class="px-6 py-4">
                             <div>
-                                <div class="text-sm font-medium text-gray-900">{{ $wq->pond_name }}</div>
-                                <div class="text-sm text-gray-500">{{ $wq->pond_code }}</div>
+                                <div class="text-sm font-medium text-gray-900">{{ $log->fish_type_name }}</div>
+                                <div class="text-sm text-gray-500">{{ $log->pond_name }} ({{ $log->pond_code }})</div>
+                                <div class="text-xs text-gray-400">Batch #{{ $log->batch_id }}</div>
                             </div>
                         </td>
                         <td class="px-6 py-4">
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                                {{ $wq->ph_status === 'good' ? 'bg-green-100 text-green-800' :
-                                   ($wq->ph_status === 'warning' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800') }}">
-                                {{ $wq->ph }}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                Minggu {{ $log->week_number }}
                             </span>
+                            <div class="text-xs text-gray-500 mt-1">{{ $log->batch_age_days }} hari</div>
                         </td>
                         <td class="px-6 py-4">
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                                {{ $wq->temp_status === 'good' ? 'bg-green-100 text-green-800' :
-                                   ($wq->temp_status === 'warning' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800') }}">
-                                {{ $wq->temperature_c }}°
-                            </span>
-                        </td>
-                        <td class="px-6 py-4">
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                                {{ $wq->do_status === 'good' ? 'bg-green-100 text-green-800' :
-                                   ($wq->do_status === 'warning' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800') }}">
-                                {{ $wq->do_mg_l }}
-                            </span>
-                        </td>
-                        <td class="px-6 py-4">
-                            @if($wq->ammonia_mg_l !== null)
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                                {{ $wq->ammonia_status === 'good' ? 'bg-green-100 text-green-800' :
-                                   ($wq->ammonia_status === 'warning' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800') }}">
-                                {{ $wq->ammonia_mg_l }}
-                            </span>
-                            @else
-                            <span class="text-gray-400 text-sm">-</span>
+                            <div class="text-sm font-medium text-gray-900">{{ number_format($log->avg_weight_gram, 1) }}g</div>
+                            @if($log->weight_growth != 0)
+                            <div class="text-xs {{ $log->weight_growth > 0 ? 'text-green-600' : 'text-red-600' }}">
+                                {{ $log->weight_growth > 0 ? '+' : '' }}{{ number_format($log->weight_growth, 1) }}g
+                            </div>
                             @endif
                         </td>
                         <td class="px-6 py-4">
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                                {{ $wq->overall_status === 'good' ? 'bg-green-100 text-green-800' :
-                                   ($wq->overall_status === 'warning' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800') }}">
-                                <div class="w-1.5 h-1.5 rounded-full mr-1.5
-                                    {{ $wq->overall_status === 'good' ? 'bg-green-400' :
-                                       ($wq->overall_status === 'warning' ? 'bg-yellow-400' : 'bg-red-400') }}"></div>
-                                {{ $wq->overall_status === 'good' ? 'Baik' :
-                                   ($wq->overall_status === 'warning' ? 'Perhatian' : 'Buruk') }}
-                            </span>
+                            <div class="text-sm font-medium text-gray-900">{{ number_format($log->avg_length_cm, 1) }}cm</div>
+                            @if($log->length_growth != 0)
+                            <div class="text-xs {{ $log->length_growth > 0 ? 'text-green-600' : 'text-red-600' }}">
+                                {{ $log->length_growth > 0 ? '+' : '' }}{{ number_format($log->length_growth, 1) }}cm
+                            </div>
+                            @endif
                         </td>
-                        <td class="px-6 py-4 text-sm text-gray-900">
-                            {{ \Carbon\Carbon::parse($wq->date_recorded)->format('d M Y') }}
-                            @if($wq->created_by_name)
-                            <div class="text-xs text-gray-400">{{ $wq->created_by_name }}</div>
+                        <td class="px-6 py-4">
+                            @if($log->weight_growth > 0 && $log->length_growth > 0)
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                <i class="fas fa-arrow-up mr-1"></i>Baik
+                            </span>
+                            @elseif($log->weight_growth > 0 || $log->length_growth > 0)
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                <i class="fas fa-minus mr-1"></i>Normal
+                            </span>
+                            @else
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                <i class="fas fa-circle mr-1"></i>Awal
+                            </span>
+                            @endif
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-500">
+                            {{ \Carbon\Carbon::parse($log->date_recorded)->format('d M Y') }}
+                            @if($log->created_by_name)
+                            <div class="text-xs text-gray-400">{{ $log->created_by_name }}</div>
                             @endif
                         </td>
                         <td class="px-6 py-4 text-right text-sm font-medium">
                             <div class="flex items-center justify-end space-x-2">
-                                <button onclick="editWaterQuality({{ $wq->id }})" class="text-blue-600 hover:text-blue-900 p-1">
+                                <button onclick="editGrowth({{ $log->id }})" class="text-blue-600 hover:text-blue-900 p-1">
                                     <i class="fas fa-edit"></i>
                                 </button>
-                                <button onclick="deleteWaterQuality({{ $wq->id }}, '{{ $wq->pond_name }} - {{ \Carbon\Carbon::parse($wq->date_recorded)->format('d M Y') }}')" class="text-red-600 hover:text-red-900 p-1">
+                                <button onclick="deleteGrowth({{ $log->id }}, 'Minggu {{ $log->week_number }} - {{ $log->fish_type_name }}')" class="text-red-600 hover:text-red-900 p-1">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </div>
@@ -155,11 +151,11 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="8" class="px-6 py-12 text-center">
+                        <td colspan="7" class="px-6 py-12 text-center">
                             <div class="flex flex-col items-center">
-                                <i class="fas fa-tint text-gray-300 text-4xl mb-4"></i>
-                                <h3 class="text-lg font-medium text-gray-900 mb-2">Belum ada data kualitas air</h3>
-                                <p class="text-gray-500 mb-4">Mulai dengan menambahkan data kualitas air pertama untuk cabang ini.</p>
+                                <i class="fas fa-chart-line text-gray-300 text-4xl mb-4"></i>
+                                <h3 class="text-lg font-medium text-gray-900 mb-2">Belum ada data pertumbuhan</h3>
+                                <p class="text-gray-500 mb-4">Mulai dengan menambahkan data pertumbuhan ikan pertama.</p>
                                 <button onclick="openAddModal()" class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
                                     <i class="fas fa-plus mr-2"></i>
                                     Tambah Data
@@ -175,29 +171,36 @@
 </div>
 
 <!-- Add/Edit Modal -->
-<div id="waterQualityModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 hidden">
+<div id="growthModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 hidden">
     <div class="relative top-20 mx-auto p-5 border w-full max-w-lg shadow-lg rounded-lg bg-white">
         <div class="mt-3">
             <div class="flex items-center justify-between mb-4">
-                <h3 id="modalTitle" class="text-lg font-medium text-gray-900">Tambah Data Kualitas Air</h3>
+                <h3 id="modalTitle" class="text-lg font-medium text-gray-900">Tambah Data Pertumbuhan</h3>
                 <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
 
-            <form id="waterQualityForm" class="space-y-4">
-                <input type="hidden" id="waterQualityId" name="id">
+            <form id="growthForm" class="space-y-4">
+                <input type="hidden" id="growthId" name="id">
+
+                <div>
+                    <label for="fish_batch_id" class="block text-sm font-medium text-gray-700 mb-1">Batch Ikan *</label>
+                    <select id="fish_batch_id" name="fish_batch_id" required
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <option value="">Pilih Batch Ikan</option>
+                        @foreach($fishBatches as $batch)
+                        <option value="{{ $batch->id }}">{{ $batch->fish_type_name }} - {{ $batch->pond_name }}</option>
+                        @endforeach
+                    </select>
+                </div>
 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label for="pond_id" class="block text-sm font-medium text-gray-700 mb-1">Kolam *</label>
-                        <select id="pond_id" name="pond_id" required
-                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                            <option value="">Pilih Kolam</option>
-                            @foreach($ponds as $pond)
-                            <option value="{{ $pond->id }}">{{ $pond->name }} ({{ $pond->code }})</option>
-                            @endforeach
-                        </select>
+                        <label for="week_number" class="block text-sm font-medium text-gray-700 mb-1">Minggu Ke *</label>
+                        <input type="number" id="week_number" name="week_number" required min="1"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                               placeholder="1">
                     </div>
 
                     <div>
@@ -209,37 +212,17 @@
 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label for="ph" class="block text-sm font-medium text-gray-700 mb-1">pH *</label>
-                        <input type="number" id="ph" name="ph" required min="0" max="14" step="0.1"
+                        <label for="avg_weight_gram" class="block text-sm font-medium text-gray-700 mb-1">Berat Rata-rata (g) *</label>
+                        <input type="number" id="avg_weight_gram" name="avg_weight_gram" required min="0" step="0.1"
                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                               placeholder="7.0">
-                        <p class="text-xs text-gray-500 mt-1">Ideal: 6.5 - 8.5</p>
+                               placeholder="50.5">
                     </div>
 
                     <div>
-                        <label for="temperature_c" class="block text-sm font-medium text-gray-700 mb-1">Suhu (°C) *</label>
-                        <input type="number" id="temperature_c" name="temperature_c" required min="0" max="50" step="0.1"
+                        <label for="avg_length_cm" class="block text-sm font-medium text-gray-700 mb-1">Panjang Rata-rata (cm) *</label>
+                        <input type="number" id="avg_length_cm" name="avg_length_cm" required min="0" step="0.1"
                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                               placeholder="28.0">
-                        <p class="text-xs text-gray-500 mt-1">Ideal: 25 - 30°C</p>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label for="do_mg_l" class="block text-sm font-medium text-gray-700 mb-1">DO (mg/L) *</label>
-                        <input type="number" id="do_mg_l" name="do_mg_l" required min="0" max="20" step="0.1"
-                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                               placeholder="6.0">
-                        <p class="text-xs text-gray-500 mt-1">Minimal: 5 mg/L</p>
-                    </div>
-
-                    <div>
-                        <label for="ammonia_mg_l" class="block text-sm font-medium text-gray-700 mb-1">Amonia (mg/L)</label>
-                        <input type="number" id="ammonia_mg_l" name="ammonia_mg_l" min="0" max="10" step="0.01"
-                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                               placeholder="0.05">
-                        <p class="text-xs text-gray-500 mt-1">Maksimal: 0.1 mg/L</p>
+                               placeholder="12.5">
                     </div>
                 </div>
 
@@ -266,18 +249,18 @@
             <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
                 <i class="fas fa-exclamation-triangle text-red-600"></i>
             </div>
-            <h3 class="text-lg font-medium text-gray-900 mb-2">Hapus Data Kualitas Air</h3>
+            <h3 class="text-lg font-medium text-gray-900 mb-2">Hapus Data Pertumbuhan</h3>
             <p class="text-sm text-gray-500 mb-4">
-                Apakah Anda yakin ingin menghapus data <strong id="deleteWaterQualityName"></strong>?
+                Apakah Anda yakin ingin menghapus data <strong id="deleteGrowthName"></strong>?
                 Tindakan ini tidak dapat dibatalkan.
             </p>
             <div class="flex items-center justify-center space-x-3">
                 <button onclick="closeDeleteModal()"
-                class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
-                Batal
-            </button>
-            <button onclick="confirmDelete()" id="deleteBtn"
-                    class="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors">
+                        class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
+                    Batal
+                </button>
+                <button onclick="confirmDelete()" id="deleteBtn"
+                class="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors">
                 <span id="deleteText">Hapus</span>
                 <i id="deleteLoader" class="fas fa-spinner fa-spin ml-2 hidden"></i>
             </button>
@@ -287,23 +270,22 @@
 </div>
 
 <script>
-let currentWaterQualityId = null;
+let currentGrowthId = null;
 let deleteId = null;
 
 // Modal functions
 function openAddModal() {
-document.getElementById('modalTitle').textContent = 'Tambah Data Kualitas Air';
+document.getElementById('modalTitle').textContent = 'Tambah Data Pertumbuhan';
 document.getElementById('submitText').textContent = 'Simpan';
-document.getElementById('waterQualityForm').reset();
-document.getElementById('waterQualityId').value = '';
-document.getElementById('date_recorded').value = new Date().toISOString().split('T')[0];
-currentWaterQualityId = null;
-document.getElementById('waterQualityModal').classList.remove('hidden');
-document.getElementById('pond_id').focus();
+document.getElementById('growthForm').reset();
+document.getElementById('growthId').value = '';
+currentGrowthId = null;
+document.getElementById('growthModal').classList.remove('hidden');
+document.getElementById('fish_batch_id').focus();
 }
 
 function closeModal() {
-document.getElementById('waterQualityModal').classList.add('hidden');
+document.getElementById('growthModal').classList.add('hidden');
 }
 
 function closeDeleteModal() {
@@ -312,25 +294,24 @@ deleteId = null;
 }
 
 // CRUD functions
-function editWaterQuality(id) {
-currentWaterQualityId = id;
-document.getElementById('modalTitle').textContent = 'Edit Data Kualitas Air';
+function editGrowth(id) {
+currentGrowthId = id;
+document.getElementById('modalTitle').textContent = 'Edit Data Pertumbuhan';
 document.getElementById('submitText').textContent = 'Perbarui';
 
-document.getElementById('waterQualityModal').classList.remove('hidden');
+document.getElementById('growthModal').classList.remove('hidden');
 
-fetch(`/water-qualities/${id}`)
+fetch(`/fish-growth/${id}`)
     .then(response => response.json())
     .then(result => {
         if (result.success) {
-            document.getElementById('waterQualityId').value = result.data.id;
-            document.getElementById('pond_id').value = result.data.pond_id;
+            document.getElementById('growthId').value = result.data.id;
+            document.getElementById('fish_batch_id').value = result.data.fish_batch_id;
+            document.getElementById('week_number').value = result.data.week_number;
+            document.getElementById('avg_weight_gram').value = result.data.avg_weight_gram;
+            document.getElementById('avg_length_cm').value = result.data.avg_length_cm;
             document.getElementById('date_recorded').value = result.data.date_recorded;
-            document.getElementById('ph').value = result.data.ph;
-            document.getElementById('temperature_c').value = result.data.temperature_c;
-            document.getElementById('do_mg_l').value = result.data.do_mg_l;
-            document.getElementById('ammonia_mg_l').value = result.data.ammonia_mg_l || '';
-            document.getElementById('pond_id').focus();
+            document.getElementById('fish_batch_id').focus();
         } else {
             showNotification('Error: ' + result.message, 'error');
             closeModal();
@@ -338,14 +319,14 @@ fetch(`/water-qualities/${id}`)
     })
     .catch(error => {
         console.error('Error:', error);
-        showNotification('Gagal memuat data kualitas air', 'error');
+        showNotification('Gagal memuat data pertumbuhan', 'error');
         closeModal();
     });
 }
 
-function deleteWaterQuality(id, name) {
+function deleteGrowth(id, name) {
 deleteId = id;
-document.getElementById('deleteWaterQualityName').textContent = name;
+document.getElementById('deleteGrowthName').textContent = name;
 document.getElementById('deleteModal').classList.remove('hidden');
 }
 
@@ -360,7 +341,7 @@ deleteText.textContent = 'Menghapus...';
 deleteLoader.classList.remove('hidden');
 deleteBtn.disabled = true;
 
-fetch(`/water-qualities/${deleteId}`, {
+fetch(`/fish-growth/${deleteId}`, {
     method: 'DELETE',
     headers: {
         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
@@ -378,7 +359,7 @@ fetch(`/water-qualities/${deleteId}`, {
 })
 .catch(error => {
     console.error('Error:', error);
-    showNotification('Gagal menghapus data kualitas air', 'error');
+    showNotification('Gagal menghapus data pertumbuhan', 'error');
 })
 .finally(() => {
     deleteText.textContent = 'Hapus';
@@ -389,7 +370,7 @@ fetch(`/water-qualities/${deleteId}`, {
 }
 
 // Form submission
-document.getElementById('waterQualityForm').addEventListener('submit', function(e) {
+document.getElementById('growthForm').addEventListener('submit', function(e) {
 e.preventDefault();
 
 const submitBtn = document.getElementById('submitBtn');
@@ -397,21 +378,20 @@ const submitText = document.getElementById('submitText');
 const submitLoader = document.getElementById('submitLoader');
 
 const formData = new FormData(this);
-const isEdit = currentWaterQualityId !== null;
+const isEdit = currentGrowthId !== null;
 
 submitText.textContent = isEdit ? 'Memperbarui...' : 'Menyimpan...';
 submitLoader.classList.remove('hidden');
 submitBtn.disabled = true;
 
-const url = isEdit ? `/water-qualities/${currentWaterQualityId}` : '/water-qualities';
+const url = isEdit ? `/fish-growth/${currentGrowthId}` : '/fish-growth';
 
 const data = {
-    pond_id: formData.get('pond_id'),
-    date_recorded: formData.get('date_recorded'),
-    ph: formData.get('ph'),
-    temperature_c: formData.get('temperature_c'),
-    do_mg_l: formData.get('do_mg_l'),
-    ammonia_mg_l: formData.get('ammonia_mg_l') || null
+    fish_batch_id: formData.get('fish_batch_id'),
+    week_number: formData.get('week_number'),
+    avg_weight_gram: formData.get('avg_weight_gram'),
+    avg_length_cm: formData.get('avg_length_cm'),
+    date_recorded: formData.get('date_recorded')
 };
 
 if (isEdit) {
@@ -488,7 +468,7 @@ if (e.key === 'Escape') {
 });
 
 // Close modals when clicking outside
-document.getElementById('waterQualityModal').addEventListener('click', function(e) {
+document.getElementById('growthModal').addEventListener('click', function(e) {
 if (e.target === this) {
     closeModal();
 }
