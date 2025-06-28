@@ -47,20 +47,40 @@ class FishBatchController extends Controller
             ->orderBy('fb.created_at', 'desc')
             ->get();
 
-        // Calculate current stock and age for each batch
+        // Calculate current stock for each batch
         foreach ($fishBatches as $batch) {
-            // Calculate current stock (initial - sold - mortality)
+            // Calculate sold fish
             $sold = DB::table('sales')
                 ->where('fish_batch_id', $batch->id)
                 ->whereNull('deleted_at')
                 ->sum('quantity_fish');
 
+            // Calculate mortality
             $mortality = DB::table('mortalities')
                 ->where('fish_batch_id', $batch->id)
                 ->whereNull('deleted_at')
                 ->sum('dead_count');
 
-            $batch->current_stock = $batch->initial_count - $sold - $mortality;
+            // Calculate transferred OUT (fish moved from this batch to other batches)
+            $transferredOut = DB::table('fish_batch_transfers')
+                ->where('source_batch_id', $batch->id)
+                ->whereNull('deleted_at')
+                ->sum('transferred_count');
+
+            // Calculate transferred IN (fish moved from other batches to this batch)
+            $transferredIn = DB::table('fish_batch_transfers')
+                ->where('target_batch_id', $batch->id)
+                ->whereNull('deleted_at')
+                ->sum('transferred_count');
+
+            // Current stock = initial + transferred_in - sold - mortality - transferred_out
+            $batch->current_stock = $batch->initial_count + $transferredIn - $sold - $mortality - $transferredOut;
+
+            // Store transfer data for display
+            $batch->transferred_in = $transferredIn;
+            $batch->transferred_out = $transferredOut;
+            $batch->sold = $sold;
+            $batch->mortality = $mortality;
 
             // Calculate age in days
             $batch->age_days = \Carbon\Carbon::parse($batch->date_start)->diffInDays(now());
@@ -83,7 +103,8 @@ class FishBatchController extends Controller
             'total_batches' => $fishBatches->count(),
             'active_batches' => $fishBatches->where('status', '!=', 'finished')->count(),
             'total_current_stock' => $fishBatches->sum('current_stock'),
-            'avg_age_days' => $fishBatches->where('status', '!=', 'finished')->avg('age_days') ?: 0
+            'avg_age_days' => $fishBatches->where('status', '!=', 'finished')->avg('age_days') ?: 0,
+            'total_transferred' => $fishBatches->sum('transferred_out')
         ];
 
         // Get dropdown data for form
@@ -233,12 +254,14 @@ class FishBatchController extends Controller
             // Check if batch has related data
             $hasRelatedData = DB::table('sales')->where('fish_batch_id', $id)->whereNull('deleted_at')->exists() ||
                 DB::table('mortalities')->where('fish_batch_id', $id)->whereNull('deleted_at')->exists() ||
-                DB::table('feedings')->where('fish_batch_id', $id)->whereNull('deleted_at')->exists();
+                DB::table('feedings')->where('fish_batch_id', $id)->whereNull('deleted_at')->exists() ||
+                DB::table('fish_batch_transfers')->where('source_batch_id', $id)->whereNull('deleted_at')->exists() ||
+                DB::table('fish_batch_transfers')->where('target_batch_id', $id)->whereNull('deleted_at')->exists();
 
             if ($hasRelatedData) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Batch tidak dapat dihapus karena memiliki data terkait (penjualan, mortalitas, atau pemberian pakan).'
+                    'message' => 'Batch tidak dapat dihapus karena memiliki data terkait (penjualan, mortalitas, transfer, atau pemberian pakan).'
                 ], 400);
             }
 

@@ -83,16 +83,14 @@
                     <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Transaksi</p>
                 </div>
 
-                <a href="#" class="nav-item flex items-center px-4 py-3 text-gray-400 cursor-not-allowed opacity-60">
+                <a href="{{ route('sales.index') }}" class="nav-item flex items-center px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-all duration-200 {{ request()->routeIs('sales.*') ? 'bg-blue-50 text-blue-600 border-r-2 border-blue-600' : '' }}">
                     <i class="fas fa-shopping-cart mr-3 w-5 text-center"></i>
                     <span>Penjualan</span>
-                    <span class="ml-auto text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded-full">Soon</span>
                 </a>
 
-                <a href="#" class="nav-item flex items-center px-4 py-3 text-gray-400 cursor-not-allowed opacity-60">
+                <a href="{{ route('fish-transfers.index') }}" class="nav-item flex items-center px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-all duration-200 {{ request()->routeIs('fish-transfers.*') ? 'bg-blue-50 text-blue-600 border-r-2 border-blue-600' : '' }}">
                     <i class="fas fa-exchange-alt mr-3 w-5 text-center"></i>
                     <span>Transfer Batch</span>
-                    <span class="ml-auto text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded-full">Soon</span>
                 </a>
             </div>
 

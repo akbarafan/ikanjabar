@@ -8,11 +8,13 @@ use App\Http\Controllers\FishBatchController;
 use App\Http\Controllers\WaterQualityController;
 use App\Http\Controllers\FishGrowthController;
 use App\Http\Controllers\FeedingController;
+use App\Http\Controllers\FishBatchTransferController;
 use App\Http\Controllers\FishGrowthLogController;
 use App\Http\Controllers\FishTypeController;
 use App\Http\Controllers\MortalityController;
 use App\Http\Controllers\SalesController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\SaleController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -71,6 +73,21 @@ Route::post('/mortalities', [MortalityController::class, 'store'])->name('mortal
 Route::get('/mortalities/{id}', [MortalityController::class, 'show'])->name('mortalities.show');
 Route::put('/mortalities/{id}', [MortalityController::class, 'update'])->name('mortalities.update');
 Route::delete('/mortalities/{id}', [MortalityController::class, 'destroy'])->name('mortalities.destroy');
+
+// Sales Routes
+Route::get('/sales', [SaleController::class, 'index'])->name('sales.index');
+Route::post('/sales', [SaleController::class, 'store'])->name('sales.store');
+Route::get('/sales/{id}', [SaleController::class, 'show'])->name('sales.show');
+Route::put('/sales/{id}', [SaleController::class, 'update'])->name('sales.update');
+Route::delete('/sales/{id}', [SaleController::class, 'destroy'])->name('sales.destroy');
+
+// Fish Transfer Routes
+Route::get('/fish-transfers', [FishBatchTransferController::class, 'index'])->name('fish-transfers.index');
+Route::post('/fish-transfers', [FishBatchTransferController::class, 'store'])->name('fish-transfers.store');
+Route::get('/fish-transfers/{id}', [FishBatchTransferController::class, 'show'])->name('fish-transfers.show');
+Route::put('/fish-transfers/{id}', [FishBatchTransferController::class, 'update'])->name('fish-transfers.update');
+Route::delete('/fish-transfers/{id}', [FishBatchTransferController::class, 'destroy'])->name('fish-transfers.destroy');
+
 
 Route::prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
