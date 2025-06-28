@@ -155,17 +155,5 @@ class DatabaseSeeder extends Seeder
             'created_at' => now(),
             'updated_at' => now()
         ]);
-
-        // Fish Batch Transfers
-        DB::table('fish_batch_transfers')->insert([
-            'source_batch_id' => 1,
-            'target_batch_id' => 1,
-            'transferred_count' => 200,
-            'date_transfer' => now()->subDays(1),
-            'notes' => 'Grading ke kolam 2',
-            'created_by' => $userId,
-            'created_at' => now(),
-            'updated_at' => now()
-        ]);
     }
 }

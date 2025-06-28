@@ -5,7 +5,7 @@
 @section('content')
 <div class="space-y-6">
     <!-- Stats Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
             <div class="flex items-center">
                 <div class="p-3 rounded-full bg-blue-100">
@@ -42,19 +42,6 @@
                 </div>
             </div>
         </div>
-
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-            <div class="flex items-center">
-                <div class="p-3 rounded-full bg-orange-100">
-                    <i class="fas fa-fish text-orange-600 text-xl"></i>
-                </div>
-                <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-600">Total Stok</p>
-                    <p class="text-2xl font-bold text-gray-900">{{ number_format($stats['total_current_stock']) }}</p>
-                    <p class="text-xs text-gray-500">Ekor</p>
-                </div>
-            </div>
-        </div>
     </div>
 
     <!-- Ponds Table -->
@@ -80,7 +67,6 @@
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipe & Volume</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jenis Ikan</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stok</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dibuat</th>
                         <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
                     </tr>
@@ -134,10 +120,6 @@
                         @else
                         <span class="text-sm text-gray-400">-</span>
                         @endif
-                    </td>
-                    <td class="px-6 py-4">
-                        <span class="text-sm font-medium text-gray-900">{{ number_format($pond->current_stock) }}</span>
-                        <span class="text-xs text-gray-500">ekor</span>
                     </td>
                     <td class="px-6 py-4 text-sm text-gray-500">
                         {{ \Carbon\Carbon::parse($pond->created_at)->format('d M Y') }}

@@ -1,743 +1,875 @@
 @extends('user.layouts.app')
 
-@section('title', 'Dashboard - ')
+@section('page-title', 'Dashboard')
+
 @section('content')
-    <!-- Branch Header -->
-    <div class="mb-8 bg-gradient-to-r from-blue-600 to-blue-800 rounded-xl p-6 text-white">
-        <div class="flex items-center justify-between">
-            <div>
-                <h1 class="text-3xl font-bold mb-2">{{ $branchInfo->name }}</h1>
-                <p class="text-blue-100 mb-1">📍 {{ $branchInfo->location }}</p>
-                <p class="text-blue-100 text-sm">PIC: {{ $branchInfo->pic_name }} | Kontak: {{ $branchInfo->contact_person }}</p>
-            </div>
-            <div class="text-right">
-                <div class="text-sm text-blue-200">Update terakhir</div>
-                <div class="text-lg font-semibold">{{ now()->format('d M Y, H:i') }} WIB</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Quick Stats -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <div class="bg-white rounded-lg shadow p-4 hover:shadow-md transition-shadow">
+<div class="space-y-6">
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
             <div class="flex items-center">
-                <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
-                    <i class="fas fa-water text-blue-600"></i>
+                <div class="p-3 rounded-full bg-blue-100">
+                    <i class="fas fa-swimming-pool text-blue-600 text-xl"></i>
                 </div>
-                <div>
-                    <p class="text-sm text-gray-600">Total Kolam</p>
-                    <p class="text-xl font-bold text-gray-900">{{ $totalPonds }}</p>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Total Kolam</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ $totalPonds }}</p>
                 </div>
             </div>
         </div>
 
-        <div class="bg-white rounded-lg shadow p-4 hover:shadow-md transition-shadow">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
             <div class="flex items-center">
-                <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mr-3">
-                    <i class="fas fa-fish text-green-600"></i>
+                <div class="p-3 rounded-full bg-green-100">
+                    <i class="fas fa-fish text-green-600 text-xl"></i>
                 </div>
-                <div>
-                    <p class="text-sm text-gray-600">Stok Ikan</p>
-                    <p class="text-xl font-bold text-gray-900">{{ number_format($totalFish) }}</p>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Stok Ikan Saat Ini</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ number_format($totalFish) }}</p>
+                    <p class="text-xs text-gray-500">Ekor</p>
                 </div>
             </div>
         </div>
 
-        <div class="bg-white rounded-lg shadow p-4 hover:shadow-md transition-shadow">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
             <div class="flex items-center">
-                <div class="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center mr-3">
-                    <i class="fas fa-money-bill-wave text-emerald-600"></i>
+                <div class="p-3 rounded-full bg-red-100">
+                    <i class="fas fa-skull-crossbones text-red-600 text-xl"></i>
                 </div>
-                <div>
-                    <p class="text-sm text-gray-600">Omset Bulan Ini</p>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Mortalitas</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ number_format($totalDeadFish) }}</p>
+                    <p class="text-xs text-gray-500">Ekor</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-purple-100">
+                    <i class="fas fa-layer-group text-purple-600 text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Jenis Ikan</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ $totalFishTypes }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-yellow-100">
+                    <i class="fas fa-chart-line text-yellow-600 text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Pendapatan Bulan Ini</p>
                     <p class="text-lg font-bold text-gray-900">{{ $monthlyRevenue['formatted'] }}</p>
-                    <p class="text-xs {{ $monthlyRevenue['growth'] >= 0 ? 'text-green-600' : 'text-red-600' }}">
-                        {{ $monthlyRevenue['growth'] >= 0 ? '+' : '' }}{{ $monthlyRevenue['growth'] }}%
-                    </p>
-                </div>
-            </div>
-        </div>
-
-        <div class="bg-white rounded-lg shadow p-4 hover:shadow-md transition-shadow">
-            <div class="flex items-center">
-                <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mr-3">
-                    <i class="fas fa-layer-group text-purple-600"></i>
-                </div>
-                <div>
-                    <p class="text-sm text-gray-600">Jenis Ikan</p>
-                    <p class="text-xl font-bold text-gray-900">{{ $totalFishTypes }}</p>
+                    <div class="flex items-center mt-1">
+                        @if($monthlyRevenue['growth'] >= 0)
+                        <i class="fas fa-arrow-up text-green-500 text-xs mr-1"></i>
+                        <span class="text-xs text-green-500">+{{ $monthlyRevenue['growth'] }}%</span>
+                        @else
+                        <i class="fas fa-arrow-down text-red-500 text-xs mr-1"></i>
+                        <span class="text-xs text-red-500">{{ $monthlyRevenue['growth'] }}%</span>
+                        @endif
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Main Content Grid -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        <!-- Pond Stock Details (2/3 width) -->
-        <div class="lg:col-span-2 bg-white rounded-lg shadow">
-            <div class="p-6 border-b border-gray-200">
-                <h3 class="text-lg font-semibold text-gray-900 flex items-center">
-                    <i class="fas fa-water text-blue-500 mr-2"></i>
-                    Detail Stok per Kolam
-                </h3>
+    <!-- Performance Metrics -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Tingkat Kelangsungan Hidup</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ $survival_rate }}%</p>
+                </div>
+                <div class="p-3 rounded-full bg-green-100">
+                    <i class="fas fa-heart text-green-600 text-xl"></i>
+                </div>
             </div>
-            <div class="p-6">
-                <div class="space-y-4 max-h-96 overflow-y-auto">
+            <div class="mt-4">
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                    <div class="bg-green-500 h-2 rounded-full" style="width: {{ $survival_rate }}%"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Feed Conversion Ratio</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ $fcr }}</p>
+                    <p class="text-xs text-gray-500">{{ number_format($total_feed_used) }} kg pakan</p>
+                </div>
+                <div class="p-3 rounded-full bg-orange-100">
+                    <i class="fas fa-utensils text-orange-600 text-xl"></i>
+                </div>
+            </div>
+            <div class="mt-2">
+                <span class="text-xs {{ $fcr <= 1.5 ? 'text-green-600' : ($fcr <= 2.0 ? 'text-yellow-600' : 'text-red-600') }}">
+                    {{ $fcr <= 1.5 ? 'Sangat Baik' : ($fcr <= 2.0 ? 'Baik' : 'Perlu Perbaikan') }}
+                </span>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Total Berat Penjualan</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ number_format($total_sales_weight, 1) }}</p>
+                    <p class="text-xs text-gray-500">Kg</p>
+                </div>
+                <div class="p-3 rounded-full bg-blue-100">
+                    <i class="fas fa-weight text-blue-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Water Quality Trend -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-gray-900">Tren Kualitas Air (7 Hari)</h3>
+                <select id="pondFilter" class="text-sm border border-gray-300 rounded-lg px-3 py-1">
+                    <option value="">Semua Kolam</option>
+                    @foreach($pondOptions as $pond)
+                    <option value="{{ $pond->id }}" {{ $selectedPondId == $pond->id ? 'selected' : '' }}>
+                        {{ $pond->name }} ({{ $pond->code }})
+                    </option>
+                    @endforeach
+                </select>
+            </div>
+            <!-- Fixed height container for chart -->
+            <div class="chart-container" style="position: relative; height: 300px; width: 100%;">
+                <canvas id="waterQualityChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Production Distribution -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Distribusi Stok per Jenis Ikan</h3>
+            <!-- Fixed height container for chart -->
+            <div class="chart-container" style="position: relative; height: 300px; width: 100%;">
+                <canvas id="productionChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pond Stock Details -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100">
+        <div class="p-6 border-b border-gray-200">
+            <h3 class="text-lg font-semibold text-gray-900">Detail Stok per Kolam</h3>
+            <p class="text-sm text-gray-600 mt-1">Monitoring stok ikan di setiap kolam dengan perhitungan transfer</p>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kolam</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jenis Ikan</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stok Awal</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stok Saat Ini</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Transfer</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Terjual</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mortalitas</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
                     @forelse($pondStockDetails as $pond)
-                        <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                            <div class="flex-1">
-                                <div class="flex items-center space-x-2 mb-2">
-                                    <span class="font-semibold text-gray-900">{{ $pond->pond_name }}</span>
-                                    <span class="text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded-full">{{ $pond->pond_code }}</span>
-                                    <span class="text-xs px-2 py-1 bg-gray-200 text-gray-700 rounded-full">{{ ucfirst($pond->pond_type) }}</span>
-                                </div>
-                                <div class="text-sm text-gray-600">
-                                    <span class="block">🐟 {{ $pond->fish_type ?? 'Belum ada ikan' }}</span>
-                                    <span class="text-xs text-gray-500">💧 {{ number_format($pond->volume_liters) }}L</span>
-                                </div>
-                                <div class="flex space-x-4 mt-2 text-xs">
-                                    <span class="text-red-600">💀 {{ number_format($pond->total_dead) }}</span>
-                                    <span class="text-green-600">💰 {{ number_format($pond->total_sold) }}</span>
-                                    @if($pond->transferred_in > 0 || $pond->transferred_out > 0)
-                                        <span class="text-blue-600">🔄 {{ $pond->transferred_in - $pond->transferred_out }}</span>
-                                    @endif
-                                </div>
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="px-6 py-4">
+                            <div>
+                                <div class="text-sm font-medium text-gray-900">{{ $pond->pond_name }}</div>
+                                <div class="text-sm text-gray-500">{{ $pond->pond_code }}</div>
+                                <div class="text-xs text-gray-400">{{ ucfirst($pond->pond_type) }} - {{ number_format($pond->volume_liters) }}L</div>
                             </div>
-                            <div class="text-right">
-                                <div class="text-2xl font-bold {{ $pond->current_stock > 0 ? 'text-blue-600' : 'text-gray-400' }}">
-                                    {{ number_format($pond->current_stock) }}
+                        </td>
+                        <td class="px-6 py-4">
+                            @if($pond->fish_type)
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                {{ $pond->fish_type }}
+                            </span>
+                            @else
+                            <span class="text-gray-400 text-sm">Kosong</span>
+                            @endif
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="text-sm font-medium text-gray-900">{{ number_format($pond->initial_count) }}</span>
+                            <div class="text-xs text-gray-500">Ekor</div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="text-lg font-bold {{ $pond->current_stock > 0 ? 'text-green-600' : 'text-gray-400' }}">
+                                {{ number_format($pond->current_stock) }}
+                            </span>
+                            <div class="text-xs text-gray-500">Ekor</div>
+                        </td>
+                        <td class="px-6 py-4">
+                            @if($pond->transferred_in > 0 || $pond->transferred_out > 0)
+                            <div class="space-y-1">
+                                @if($pond->transferred_in > 0)
+                                <div class="flex items-center text-xs">
+                                    <i class="fas fa-arrow-down text-green-600 mr-1"></i>
+                                    <span class="text-green-600">+{{ number_format($pond->transferred_in) }}</span>
                                 </div>
-                                <div class="text-xs text-gray-500">ekor</div>
-                                @if($pond->current_stock > 0)
-                                    <div class="text-xs text-gray-500 mt-1">
-                                        Kepadatan: {{ round($pond->current_stock / ($pond->volume_liters / 1000), 1) }}/m³
-                                    </div>
+                                @endif
+                                @if($pond->transferred_out > 0)
+                                <div class="flex items-center text-xs">
+                                    <i class="fas fa-arrow-up text-red-600 mr-1"></i>
+                                    <span class="text-red-600">-{{ number_format($pond->transferred_out) }}</span>
+                                </div>
                                 @endif
                             </div>
-                        </div>
+                            @else
+                            <span class="text-xs text-gray-400">Tidak ada</span>
+                            @endif
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="text-sm text-gray-900">{{ number_format($pond->total_sold) }}</span>
+                            <div class="text-xs text-gray-500">Ekor</div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="text-sm text-red-600">{{ number_format($pond->total_dead) }}</span>
+                            <div class="text-xs text-gray-500">Ekor</div>
+                        </td>
+                        <td class="px-6 py-4">
+                            @if($pond->current_stock > 0)
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                <div class="w-1.5 h-1.5 rounded-full bg-green-400 mr-1.5"></div>
+                                Aktif
+                            </span>
+                            @else
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                <div class="w-1.5 h-1.5 rounded-full bg-gray-400 mr-1.5"></div>
+                                Kosong
+                            </span>
+                            @endif
+                        </td>
+                    </tr>
                     @empty
-                        <div class="text-center py-8 text-gray-500">
-                            <i class="fas fa-water text-4xl mb-2"></i>
-                            <p>Belum ada data kolam</p>
-                        </div>
+                    <tr>
+                        <td colspan="8" class="px-6 py-12 text-center">
+                            <div class="flex flex-col items-center">
+                                <i class="fas fa-swimming-pool text-gray-300 text-4xl mb-4"></i>
+                                <h3 class="text-lg font-medium text-gray-900 mb-2">Belum ada data kolam</h3>
+                                <p class="text-gray-500">Tambahkan kolam dan batch ikan untuk melihat detail stok.</p>
+                            </div>
+                        </td>
+                    </tr>
                     @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Fish Sales Analysis -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100">
+        <div class="p-6 border-b border-gray-200">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-900">Analisis Penjualan Ikan</h3>
+                    <p class="text-sm text-gray-600 mt-1">{{ $fishSalesAnalysis['period_label'] }}</p>
                 </div>
+                <select id="periodFilter" class="text-sm border border-gray-300 rounded-lg px-3 py-2">
+                    <option value="1month" {{ $selectedPeriod == '1month' ? 'selected' : '' }}>1 Bulan Terakhir</option>
+                    <option value="3months" {{ $selectedPeriod == '3months' ? 'selected' : '' }}>3 Bulan Terakhir</option>
+                    <option value="6months" {{ $selectedPeriod == '6months' ? 'selected' : '' }}>6 Bulan Terakhir</option>
+                    <option value="1year" {{ $selectedPeriod == '1year' ? 'selected' : '' }}>1 Tahun Terakhir</option>
+                </select>
             </div>
         </div>
-
-        <!-- Pond Status (1/3 width) -->
-        <div class="bg-white rounded-lg shadow">
-            <div class="p-6 border-b border-gray-200">
-                <h3 class="text-lg font-semibold text-gray-900 flex items-center">
-                    <i class="fas fa-heartbeat text-red-500 mr-2"></i>
-                    Status Kualitas Air
-                </h3>
-            </div>
-            <div class="p-6">
-                <div class="space-y-3 max-h-96 overflow-y-auto">
-                    @foreach ($pondsStatus as $pond)
-                        <div class="p-3 rounded-lg border-l-4 status-{{ $pond['status'] }}">
-                            <div class="flex items-center justify-between mb-2">
-                                <span class="font-medium text-gray-900">{{ $pond['name'] }}</span>
-                                <div class="w-2 h-2 rounded-full
-                                    @if ($pond['status'] == 'healthy') bg-green-500
-                                    @elseif($pond['status'] == 'warning') bg-yellow-500
-                                    @else bg-red-500 @endif">
-                                </div>
-                            </div>
-                            <div class="text-xs text-gray-600 space-y-1">
-                                <div>🌡️ {{ $pond['temperature'] }}°C | 🧪 pH {{ $pond['ph'] }}</div>
-                                <div>💨 DO {{ $pond['do'] }}mg/L | ⚠️ NH₃ {{ $pond['ammonia'] }}mg/L</div>
-                            </div>
-                        </div>
-                        @endforeach
+        <div class="p-6">
+            @if(count($fishSalesAnalysis['top_fish_sales']) > 0)
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div>
+                    <!-- Fixed height container for sales chart -->
+                    <div class="chart-container" style="position: relative; height: 300px; width: 100%;">
+                        <canvas id="salesChart"></canvas>
                     </div>
                 </div>
+                <div class="space-y-4">
+                    @foreach($fishSalesAnalysis['top_fish_sales'] as $index => $sale)
+                    <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                        <div class="flex items-center">
+                            <div class="w-8 h-8 rounded-full bg-blue-{{ 500 + ($index * 100) }} text-white flex items-center justify-center text-sm font-medium">
+                                {{ $index + 1 }}
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm font-medium text-gray-900">{{ $sale->fish_name }}</p>
+                                <p class="text-xs text-gray-500">{{ number_format($sale->total_quantity) }} ekor</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-sm font-medium text-gray-900">Rp {{ number_format($sale->total_revenue, 0, ',', '.') }}</p>
+                            <p class="text-xs text-gray-500">Rp {{ number_format($sale->avg_price, 0, ',', '.') }}/kg</p>
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+            </div>
+            @else
+            <div class="text-center py-12">
+                <i class="fas fa-chart-bar text-gray-300 text-4xl mb-4"></i>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">Belum ada data penjualan</h3>
+                <p class="text-gray-500">Data penjualan akan muncul setelah ada transaksi penjualan ikan.</p>
+            </div>
+            @endif
+        </div>
+    </div>
+
+    <!-- Harvest Predictions -->
+    @if(count($harvestPredictions) > 0)
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100">
+        <div class="p-6 border-b border-gray-200">
+            <h3 class="text-lg font-semibold text-gray-900">Prediksi Panen</h3>
+            <p class="text-sm text-gray-600 mt-1">Batch yang siap atau akan siap dipanen</p>
+        </div>
+        <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                @foreach($harvestPredictions as $prediction)
+                <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                    <div class="flex items-center justify-between mb-3">
+                        <div>
+                            <h4 class="text-sm font-medium text-gray-900">Batch #{{ $prediction['batch_id'] }}</h4>
+                            <p class="text-xs text-gray-500">{{ $prediction['pond_name'] }}</p>
+                        </div>
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                            {{ $prediction['readiness'] === 'ready' ? 'bg-green-100 text-green-800' :
+                               ($prediction['readiness'] === 'soon' ? 'bg-yellow-100 text-yellow-800' : 'bg-blue-100 text-blue-800') }}">
+                            {{ $prediction['readiness'] === 'ready' ? 'Siap Panen' :
+                               ($prediction['readiness'] === 'soon' ? 'Segera' : 'Berkembang') }}
+                        </span>
+                    </div>
+
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-600">Jenis Ikan:</span>
+                            <span class="font-medium">{{ $prediction['fish_type'] }}</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-600">Stok Saat Ini:</span>
+                            <span class="font-medium">{{ number_format($prediction['current_stock']) }} ekor</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-600">Umur:</span>
+                            <span class="font-medium">{{ $prediction['age_days'] }} hari</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-600">Estimasi Panen:</span>
+                            <span class="font-medium">{{ $prediction['estimated_harvest']->format('d M Y') }}</span>
+                        </div>
+                        @if($prediction['days_to_harvest'] > 0)
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-600">Sisa Hari:</span>
+                            <span class="font-medium text-orange-600">{{ $prediction['days_to_harvest'] }} hari</span>
+                        </div>
+                        @endif
+                    </div>
+                </div>
+                @endforeach
             </div>
         </div>
+    </div>
+    @endif
 
-        <!-- Charts Section -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            <!-- Water Quality Trend -->
-            <div class="bg-white rounded-lg shadow">
-                <div class="p-6 border-b border-gray-200">
-                    <div class="flex items-center justify-between">
-                        <h3 class="text-lg font-semibold text-gray-900 flex items-center">
-                            <i class="fas fa-chart-line text-blue-500 mr-2"></i>
-                            Trend Kualitas Air (7 Hari)
-                        </h3>
-                        <select id="pondFilter" class="text-sm border border-gray-300 rounded-lg px-3 py-1 focus:ring-2 focus:ring-blue-500">
-                            <option value="">Semua Kolam</option>
-                            @foreach($pondOptions as $option)
-                                <option value="{{ $option['id'] }}" {{ $selectedPondId == $option['id'] ? 'selected' : '' }}>
-                                    {{ $option['name'] }}
-                                </option>
-                            @endforeach
-                        </select>
+    <!-- Recent Alerts -->
+    @if(count($recentAlerts) > 0)
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100">
+        <div class="p-6 border-b border-gray-200">
+            <h3 class="text-lg font-semibold text-gray-900">Peringatan Terbaru</h3>
+            <p class="text-sm text-gray-600 mt-1">Monitoring kondisi yang memerlukan perhatian</p>
+        </div>
+        <div class="p-6">
+            <div class="space-y-3">
+                @foreach($recentAlerts as $alert)
+                <div class="flex items-start p-3 bg-red-50 border border-red-200 rounded-lg">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-exclamation-triangle text-red-600"></i>
+                    </div>
+                    <div class="ml-3 flex-1">
+                        <p class="text-sm font-medium text-red-800">{{ $alert['message'] }}</p>
+                        <p class="text-xs text-red-600 mt-1">{{ $alert['detail'] }}</p>
+                        <p class="text-xs text-red-500 mt-1">{{ $alert['time'] }}</p>
                     </div>
                 </div>
-                <div class="p-6">
-                    <div class="chart-container" style="height: 300px;">
-                        <canvas id="waterQualityChart"></canvas>
-                    </div>
-                    <div class="mt-4 grid grid-cols-4 gap-2 text-center">
-                        <div class="p-2 bg-red-50 rounded">
-                            <div class="text-xs text-red-600 font-medium">Suhu</div>
-                            <div class="text-sm font-bold text-red-700">{{ $waterQualityTrend['temperature']->last() }}°C</div>
-                        </div>
-                        <div class="p-2 bg-blue-50 rounded">
-                            <div class="text-xs text-blue-600 font-medium">pH</div>
-                            <div class="text-sm font-bold text-blue-700">{{ $waterQualityTrend['ph']->last() }}</div>
-                        </div>
-                        <div class="p-2 bg-green-50 rounded">
-                            <div class="text-xs text-green-600 font-medium">DO</div>
-                            <div class="text-sm font-bold text-green-700">{{ $waterQualityTrend['do']->last() }} mg/L</div>
-                        </div>
-                        <div class="p-2 bg-orange-50 rounded">
-                            <div class="text-xs text-orange-600 font-medium">NH₃</div>
-                            <div class="text-sm font-bold text-orange-700">{{ $waterQualityTrend['ammonia']->last() }} mg/L</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Fish Sales Analysis -->
-            <div class="bg-white rounded-lg shadow">
-                <div class="p-6 border-b border-gray-200">
-                    <div class="flex items-center justify-between">
-                        <h3 class="text-lg font-semibold text-gray-900 flex items-center">
-                            <i class="fas fa-chart-bar text-green-500 mr-2"></i>
-                            Analisis Penjualan
-                        </h3>
-                        <select id="periodFilter" class="text-sm border border-gray-300 rounded-lg px-3 py-1 focus:ring-2 focus:ring-green-500">
-                            <option value="1month" {{ $selectedPeriod == '1month' ? 'selected' : '' }}>1 Bulan</option>
-                            <option value="3months" {{ $selectedPeriod == '3months' ? 'selected' : '' }}>3 Bulan</option>
-                            <option value="6months" {{ $selectedPeriod == '6months' ? 'selected' : '' }}>6 Bulan</option>
-                            <option value="1year" {{ $selectedPeriod == '1year' ? 'selected' : '' }}>1 Tahun</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="p-6">
-                    <div class="chart-container" style="height: 300px;">
-                        <canvas id="fishSalesChart"></canvas>
-                    </div>
-                    <div class="mt-4 space-y-2">
-                        @foreach($fishSalesAnalysis['top_fish_sales']->take(3) as $fish)
-                            <div class="flex items-center justify-between text-sm">
-                                <div class="flex items-center">
-                                    <div class="w-3 h-3 rounded-full mr-2" style="background-color: {{ ['#10b981', '#3b82f6', '#f59e0b'][$loop->index] }}"></div>
-                                    <span class="font-medium">{{ $fish->fish_name }}</span>
-                                </div>
-                                <div class="text-right">
-                                    <span class="text-gray-900 font-medium">Rp {{ number_format($fish->total_revenue, 0, ',', '.') }}</span>
-                                    <span class="text-gray-500 text-xs block">{{ number_format($fish->total_quantity) }} ekor</span>
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
-                </div>
+                @endforeach
             </div>
         </div>
+    </div>
+    @endif
+</div>
 
-        <!-- Performance Metrics & Alerts -->
-        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
-            <!-- Survival Rate -->
-            <div class="bg-white rounded-lg shadow p-6">
-                <div class="flex items-center justify-between mb-4">
-                    <h4 class="font-semibold text-gray-900">Survival Rate</h4>
-                    <i class="fas fa-heart text-red-500"></i>
-                </div>
-                <div class="text-center">
-                    <div class="text-2xl font-bold text-green-600 mb-2">{{ $survivalRate }}%</div>
-                    <div class="w-full bg-gray-200 rounded-full h-2">
-                        <div class="bg-green-500 h-2 rounded-full" style="width: {{ $survivalRate }}%"></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- FCR -->
-            <div class="bg-white rounded-lg shadow p-6">
-                <div class="flex items-center justify-between mb-4">
-                    <h4 class="font-semibold text-gray-900">FCR Rata-rata</h4>
-                    <i class="fas fa-utensils text-orange-500"></i>
-                </div>
-                <div class="text-center">
-                    <div class="text-2xl font-bold text-blue-600 mb-2">{{ $averageFCR }}</div>
-                    <div class="w-full bg-gray-200 rounded-full h-2">
-                        <div class="bg-blue-500 h-2 rounded-full" style="width: {{ (2 - $averageFCR) * 50 }}%"></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Target Panen -->
-            <div class="bg-white rounded-lg shadow p-6">
-                <div class="flex items-center justify-between mb-4">
-                    <h4 class="font-semibold text-gray-900">Target Panen</h4>
-                    <i class="fas fa-target text-purple-500"></i>
-                </div>
-                <div class="text-center">
-                    <div class="text-2xl font-bold text-purple-600 mb-2">{{ $monthlyEstimatedHarvest['percentage'] }}%</div>
-                    <div class="w-full bg-gray-200 rounded-full h-2">
-                        <div class="bg-purple-500 h-2 rounded-full" style="width: {{ $monthlyEstimatedHarvest['percentage'] }}%"></div>
-                    </div>
-                    <div class="text-xs text-gray-600 mt-2">
-                        {{ number_format($monthlyEstimatedHarvest['total']) }}/{{ number_format($monthlyEstimatedHarvest['target']) }} kg
-                    </div>
-                </div>
-            </div>
-
-            <!-- Recent Alerts -->
-            <div class="bg-white rounded-lg shadow p-6">
-                <div class="flex items-center justify-between mb-4">
-                    <h4 class="font-semibold text-gray-900">Alert Terbaru</h4>
-                    <i class="fas fa-bell text-yellow-500"></i>
-                </div>
-                <div class="space-y-2">
-                    @forelse ($recentAlerts->take(2) as $alert)
-                        <div class="p-2 rounded bg-red-50 border-l-4 border-red-500">
-                            <p class="text-xs font-medium text-red-800">{{ $alert['message'] }}</p>
-                            <p class="text-xs text-red-600">{{ $alert['detail'] }}</p>
-                        </div>
-                    @empty
-                        <div class="text-center py-4 text-gray-500">
-                            <i class="fas fa-check-circle text-2xl mb-1 text-green-400"></i>
-                            <p class="text-xs">Tidak ada alert</p>
-                        </div>
-                    @endforelse
-                </div>
-            </div>
-        </div>
-
-        <!-- Harvest Predictions -->
-        <div class="bg-white rounded-lg shadow mb-8">
-            <div class="p-6 border-b border-gray-200">
-                <h3 class="text-lg font-semibold text-gray-900 flex items-center">
-                    <i class="fas fa-calendar-alt text-purple-500 mr-2"></i>
-                    Prediksi Panen
-                </h3>
-            </div>
-            <div class="p-6">
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    @forelse ($harvestPredictions as $prediction)
-                        <div class="p-4 rounded-lg bg-gray-50 border hover:shadow-md transition-shadow">
-                            <div class="mb-3">
-                                <h4 class="font-medium text-gray-900">{{ $prediction['pond'] }}</h4>
-                                <p class="text-sm text-gray-600">{{ $prediction['fish_type'] }}</p>
-                            </div>
-                            <div class="text-center">
-                                @if ($prediction['status'] == 'ready')
-                                    <span class="inline-block bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded-full mb-2">
-                                        ✅ Siap Panen
-                                    </span>
-                                @else
-                                    <span class="inline-block bg-yellow-100 text-yellow-800 text-xs font-medium px-2 py-1 rounded-full mb-2">
-                                        ⏳ {{ $prediction['days_left'] }} hari lagi
-                                    </span>
-                                @endif
-                                <p class="text-sm text-gray-500">~{{ $prediction['estimated_weight'] }}kg</p>
-                            </div>
-                        </div>
-                    @empty
-                        <div class="col-span-full text-center py-8 text-gray-500">
-                            <i class="fas fa-calendar-times text-4xl mb-2"></i>
-                            <p>Belum ada prediksi panen</p>
-                        </div>
-                    @endforelse
-                </div>
-            </div>
-        </div>
-    @endsection
-
-    @push('scripts')
-        <script>
-            // Filter handlers
-            document.getElementById('pondFilter').addEventListener('change', function() {
-                const pondId = this.value;
-                const url = new URL(window.location.href);
-                if (pondId) {
-                    url.searchParams.set('pond_id', pondId);
-                } else {
-                    url.searchParams.delete('pond_id');
-                }
-                window.location.href = url.toString();
-            });
-
-            document.getElementById('periodFilter').addEventListener('change', function() {
-                const period = this.value;
-                const url = new URL(window.location.href);
-                url.searchParams.set('period', period);
-                window.location.href = url.toString();
-            });
-
-            // Water Quality Chart
-            const waterQualityCtx = document.getElementById('waterQualityChart').getContext('2d');
-            new Chart(waterQualityCtx, {
-                type: 'line',
-                data: {
-                    labels: {!! json_encode($waterQualityTrend['labels']) !!},
-                    datasets: [{
-                        label: 'Suhu (°C)',
-                        data: {!! json_encode($waterQualityTrend['temperature']) !!},
-                        borderColor: 'rgb(239, 68, 68)',
-                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                        tension: 0.4,
-                        yAxisID: 'y'
-                    }, {
-                        label: 'pH',
-                        data: {!! json_encode($waterQualityTrend['ph']) !!},
-                        borderColor: 'rgb(59, 130, 246)',
-                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                        tension: 0.4,
-                        yAxisID: 'y'
-                    }, {
-                        label: 'DO (mg/L)',
-                        data: {!! json_encode($waterQualityTrend['do']) !!},
-                        borderColor: 'rgb(16, 185, 129)',
-                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                        tension: 0.4,
-                        yAxisID: 'y'
-                    }, {
-                        label: 'Ammonia (mg/L)',
-                        data: {!! json_encode($waterQualityTrend['ammonia']) !!},
-                        borderColor: 'rgb(245, 158, 11)',
-                        backgroundColor: 'rgba(245, 158, 11, 0.1)',
-                        tension: 0.4,
-                        yAxisID: 'y1'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    interaction: { mode: 'index', intersect: false },
-                    plugins: {
-                        legend: { position: 'top' }
-                    },
-                    scales: {
-                        x: { display: true },
-                        y: {
-                            type: 'linear',
-                            display: true,
-                            position: 'left',
-                            title: { display: true, text: 'Suhu, pH, DO' }
-                        },
-                        y1: {
-                            type: 'linear',
-                            display: true,
-                            position: 'right',
-                            title: { display: true, text: 'Ammonia (mg/L)'                        },
-                        grid: { drawOnChartArea: false },
-                        max: 1.0,
-                        min: 0
-                    }
-                }
-            }
-        });
-
-        // Fish Sales Chart
-        const fishSalesCtx = document.getElementById('fishSalesChart').getContext('2d');
-        new Chart(fishSalesCtx, {
-            type: 'bar',
-            data: {
-                labels: {!! json_encode($fishSalesAnalysis['chart_data']['labels']) !!},
-                datasets: [{
-                    label: 'Pendapatan (Rp)',
-                    data: {!! json_encode($fishSalesAnalysis['chart_data']['revenues']) !!},
-                    backgroundColor: [
-                        'rgba(16, 185, 129, 0.8)',
-                        'rgba(59, 130, 246, 0.8)',
-                        'rgba(245, 158, 11, 0.8)',
-                        'rgba(239, 68, 68, 0.8)',
-                        'rgba(139, 92, 246, 0.8)'
-                    ],
-                    borderColor: [
-                        'rgb(16, 185, 129)',
-                        'rgb(59, 130, 246)',
-                        'rgb(245, 158, 11)',
-                        'rgb(239, 68, 68)',
-                        'rgb(139, 92, 246)'
-                    ],
-                    borderWidth: 2,
-                    borderRadius: 8
-                }]
+<!-- Chart.js Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Water Quality Chart
+    const waterQualityCtx = document.getElementById('waterQualityChart').getContext('2d');
+    new Chart(waterQualityCtx, {
+        type: 'line',
+        data: {
+            labels: @json($waterQualityTrend['labels']),
+            datasets: [{
+                label: 'Suhu (°C)',
+                data: @json($waterQualityTrend['temperature']),
+                borderColor: 'rgb(239, 68, 68)',
+                backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                tension: 0.4,
+                fill: false
+            }, {
+                label: 'pH',
+                data: @json($waterQualityTrend['ph']),
+                borderColor: 'rgb(59, 130, 246)',
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                tension: 0.4,
+                fill: false
+            }, {
+                label: 'DO (mg/L)',
+                data: @json($waterQualityTrend['do']),
+                borderColor: 'rgb(16, 185, 129)',
+                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                tension: 0.4,
+                fill: false
+            }, {
+                label: 'Ammonia (mg/L)',
+                data: @json($waterQualityTrend['ammonia']),
+                borderColor: 'rgb(245, 158, 11)',
+                backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                tension: 0.4,
+                fill: false
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                intersect: false,
+                mode: 'index'
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                return 'Pendapatan: Rp ' + new Intl.NumberFormat('id-ID').format(context.parsed.y);
+            scales: {
+                x: {
+                    display: true,
+                    title: {
+                        display: true,
+                        text: 'Tanggal'
+                    }
+                },
+                y: {
+                    display: true,
+                    title: {
+                        display: true,
+                        text: 'Nilai'
+                    },
+                    beginAtZero: true
+                }
+            },
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        usePointStyle: true,
+                        padding: 20
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    titleColor: 'white',
+                    bodyColor: 'white',
+                    borderColor: 'rgba(255, 255, 255, 0.1)',
+                    borderWidth: 1
+                }
+            }
+        }
+    });
+
+    // Production Distribution Chart
+    const productionCtx = document.getElementById('productionChart').getContext('2d');
+    new Chart(productionCtx, {
+        type: 'doughnut',
+        data: {
+            labels: @json($productionDistribution['labels']),
+            datasets: [{
+                data: @json($productionDistribution['data']),
+                backgroundColor: [
+                    'rgb(59, 130, 246)',
+                    'rgb(16, 185, 129)',
+                    'rgb(245, 158, 11)',
+                    'rgb(239, 68, 68)',
+                    'rgb(139, 92, 246)',
+                    'rgb(236, 72, 153)',
+                    'rgb(34, 197, 94)',
+                    'rgb(251, 146, 60)'
+                ],
+                borderWidth: 2,
+                borderColor: '#ffffff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '50%',
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        usePointStyle: true,
+                        padding: 20,
+                        generateLabels: function(chart) {
+                            const data = chart.data;
+                            if (data.labels.length && data.datasets.length) {
+                                return data.labels.map((label, i) => {
+                                    const value = data.datasets[0].data[i];
+                                    return {
+                                        text: `${label}: ${value.toLocaleString()} ekor`,
+                                        fillStyle: data.datasets[0].backgroundColor[i],
+                                        strokeStyle: data.datasets[0].backgroundColor[i],
+                                        pointStyle: 'circle',
+                                        hidden: false,
+                                        index: i
+                                    };
+                                });
                             }
+                            return [];
                         }
                     }
                 },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        title: { display: true, text: 'Pendapatan (Rp)' },
-                        ticks: {
-                            callback: function(value) {
-                                return 'Rp ' + new Intl.NumberFormat('id-ID').format(value);
-                            }
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    titleColor: 'white',
+                    bodyColor: 'white',
+                    borderColor: 'rgba(255, 255, 255, 0.1)',
+                    borderWidth: 1,
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label || '';
+                            const value = context.parsed;
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = ((value / total) * 100).toFixed(1);
+                            return `${label}: ${value.toLocaleString()} ekor (${percentage}%)`;
                         }
+                    }
+                }
+            }
+        }
+    });
+
+    // Sales Chart (if data exists)
+    @if(count($fishSalesAnalysis['top_fish_sales']) > 0)
+    const salesCtx = document.getElementById('salesChart').getContext('2d');
+    new Chart(salesCtx, {
+        type: 'bar',
+        data: {
+            labels: @json($fishSalesAnalysis['chart_data']['labels']),
+            datasets: [{
+                label: 'Pendapatan (Rp)',
+                data: @json($fishSalesAnalysis['chart_data']['revenues']),
+                backgroundColor: 'rgba(59, 130, 246, 0.8)',
+                borderColor: 'rgb(59, 130, 246)',
+                borderWidth: 1,
+                borderRadius: 4,
+                borderSkipped: false,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                intersect: false,
+                mode: 'index'
+            },
+            scales: {
+                x: {
+                    display: true,
+                    title: {
+                        display: true,
+                        text: 'Jenis Ikan'
                     },
-                    x: {
-                        title: { display: true, text: 'Jenis Ikan' }
+                    grid: {
+                        display: false
+                    }
+                },
+                y: {
+                    display: true,
+                    title: {
+                        display: true,
+                        text: 'Pendapatan (Rp)'
+                    },
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return 'Rp ' + value.toLocaleString('id-ID');
+                        }
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    titleColor: 'white',
+                    bodyColor: 'white',
+                    borderColor: 'rgba(255, 255, 255, 0.1)',
+                    borderWidth: 1,
+                    callbacks: {
+                        label: function(context) {
+                            return 'Pendapatan: Rp ' + context.parsed.y.toLocaleString('id-ID');
+                        }
                     }
                 }
             }
+        }
+    });
+    @endif
+
+    // Filter handlers
+    document.getElementById('pondFilter').addEventListener('change', function() {
+        const pondId = this.value;
+        const url = new URL(window.location);
+        if (pondId) {
+            url.searchParams.set('pond_id', pondId);
+        } else {
+            url.searchParams.delete('pond_id');
+        }
+        window.location.href = url.toString();
+    });
+
+    document.getElementById('periodFilter').addEventListener('change', function() {
+        const period = this.value;
+        const url = new URL(window.location);
+        url.searchParams.set('period', period);
+        window.location.href = url.toString();
+    });
+
+    // Auto refresh every 5 minutes
+    setTimeout(function() {
+        location.reload();
+    }, 300000);
+});
+
+// Notification function for alerts
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg max-w-sm transform transition-all duration-300 translate-x-full`;
+
+    if (type === 'success') {
+        notification.classList.add('bg-green-500', 'text-white');
+        notification.innerHTML = `<i class="fas fa-check-circle mr-2"></i>${message}`;
+    } else if (type === 'error') {
+        notification.classList.add('bg-red-500', 'text-white');
+        notification.innerHTML = `<i class="fas fa-exclamation-circle mr-2"></i>${message}`;
+    } else if (type === 'warning') {
+        notification.classList.add('bg-yellow-500', 'text-white');
+        notification.innerHTML = `<i class="fas fa-exclamation-triangle mr-2"></i>${message}`;
+    } else {
+        notification.classList.add('bg-blue-500', 'text-white');
+        notification.innerHTML = `<i class="fas fa-info-circle mr-2"></i>${message}`;
+    }
+
+    document.body.appendChild(notification);
+
+    setTimeout(() => {
+        notification.classList.remove('translate-x-full');
+    }, 100);
+
+    setTimeout(() => {
+        notification.classList.add('translate-x-full');
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 300);
+    }, 5000);
+}
+
+// Check for critical alerts on page load
+@if(count($recentAlerts) > 0)
+document.addEventListener('DOMContentLoaded', function() {
+    showNotification('{{ count($recentAlerts) }} peringatan kualitas air memerlukan perhatian!', 'warning');
+});
+@endif
+</script>
+
+<style>
+.gradient-bg {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+/* Chart container styling */
+.chart-container {
+    position: relative;
+    width: 100%;
+    height: 300px !important;
+    max-height: 300px;
+    overflow: hidden;
+}
+
+.chart-container canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100% !important;
+    height: 100% !important;
+    max-height: 300px !important;
+}
+
+/* Custom scrollbar for tables */
+.overflow-x-auto::-webkit-scrollbar {
+    height: 6px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* Animation for cards */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.bg-white {
+    animation: fadeInUp 0.5s ease-out;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .chart-container {
+        height: 250px !important;
+        max-height: 250px;
+    }
+
+    .chart-container canvas {
+        max-height: 250px !important;
+    }
+}
+
+@media (max-width: 640px) {
+    .chart-container {
+        height: 200px !important;
+        max-height: 200px;
+    }
+
+    .chart-container canvas {
+        max-height: 200px !important;
+    }
+}
+
+/* Prevent chart overflow */
+.bg-white.rounded-xl {
+    overflow: hidden;
+}
+
+/* Grid responsive fixes */
+.grid {
+    display: grid;
+    gap: 1.5rem;
+}
+
+.grid-cols-1 {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+@media (min-width: 768px) {
+    .md\:grid-cols-2 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .md\:grid-cols-3 {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (min-width: 1024px) {
+    .lg\:grid-cols-2 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .lg\:grid-cols-3 {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .lg\:grid-cols-5 {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+}
+
+/* Fix for chart legend spacing */
+.chart-container .chartjs-legend {
+    margin-top: 10px;
+}
+
+/* Ensure proper spacing */
+.space-y-6 > * + * {
+    margin-top: 1.5rem;
+}
+
+.space-y-4 > * + * {
+    margin-top: 1rem;
+}
+
+/* Loading state for charts */
+.chart-container::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f4f6;
+    border-top: 4px solid #3b82f6;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    z-index: 1;
+}
+
+.chart-container canvas {
+    z-index: 2;
+}
+
+@keyframes spin {
+    0% { transform: translate(-50%, -50%) rotate(0deg); }
+    100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* Hide loading spinner when chart is loaded */
+.chart-container.loaded::before {
+    display: none;
+}
+</style>
+
+<script>
+// Add loaded class to chart containers when charts are rendered
+document.addEventListener('DOMContentLoaded', function() {
+    // Wait for charts to be rendered
+    setTimeout(function() {
+        document.querySelectorAll('.chart-container').forEach(function(container) {
+            container.classList.add('loaded');
         });
-
-        // Auto refresh every 5 minutes
-        setInterval(() => location.reload(), 300000);
-
-        // Animation effects
-        document.addEventListener('DOMContentLoaded', function() {
-            // Animate cards on scroll
-            const cards = document.querySelectorAll('.hover\\:shadow-md');
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.style.transform = 'translateY(-2px)';
-                        setTimeout(() => {
-                            entry.target.style.transform = 'translateY(0)';
-                        }, 300);
-                    }
-                });
-            });
-            cards.forEach(card => observer.observe(card));
-
-            // Show notification for critical alerts
-            const criticalAlerts = {{ $recentAlerts->count() }};
-            if (criticalAlerts > 0) {
-                showNotification(`${criticalAlerts} alert kritis memerlukan perhatian!`, 'danger');
-            }
-        });
-
-        // Notification function
-        function showNotification(message, type = 'info') {
-            const notification = document.createElement('div');
-            notification.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 transition-all duration-300 ${
-                type === 'danger' ? 'bg-red-500 text-white' :
-                type === 'warning' ? 'bg-yellow-500 text-white' :
-                type === 'success' ? 'bg-green-500 text-white' :
-                'bg-blue-500 text-white'
-            }`;
-            notification.innerHTML = `
-                <div class="flex items-center">
-                    <i class="fas fa-${type === 'danger' ? 'exclamation-triangle' : 'info-circle'} mr-2"></i>
-                    <span>${message}</span>
-                    <button onclick="this.parentElement.parentElement.remove()" class="ml-4 text-white hover:text-gray-200">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-            `;
-            document.body.appendChild(notification);
-
-            // Auto remove after 5 seconds
-            setTimeout(() => {
-                if (notification.parentElement) {
-                    notification.remove();
-                }
-            }, 5000);
-        }
-
-        // Keyboard shortcuts
-        document.addEventListener('keydown', function(e) {
-            if (e.ctrlKey && e.key === 'r') {
-                e.preventDefault();
-                location.reload();
-            }
-        });
-
-        // Real-time updates for stock density warnings
-        function checkStockDensity() {
-            const densityElements = document.querySelectorAll('[data-density]');
-            densityElements.forEach(element => {
-                const density = parseFloat(element.dataset.density);
-                if (density > 50) {
-                    element.classList.add('text-red-600', 'font-bold');
-                    element.title = 'Kepadatan tinggi! Pertimbangkan untuk mengurangi stok.';
-                } else if (density > 30) {
-                    element.classList.add('text-yellow-600', 'font-medium');
-                    element.title = 'Kepadatan sedang. Monitor pertumbuhan ikan.';
-                }
-            });
-        }
-
-        // Initialize density check
-        document.addEventListener('DOMContentLoaded', checkStockDensity);
-    </script>
-@endpush
-
-@push('styles')
-    <style>
-        /* Status indicators */
-        .status-healthy {
-            border-left-color: #10b981;
-            background-color: #f0fdf4;
-        }
-
-        .status-warning {
-            border-left-color: #f59e0b;
-            background-color: #fffbeb;
-        }
-
-        .status-danger {
-            border-left-color: #ef4444;
-            background-color: #fef2f2;
-        }
-
-        /* Chart container */
-        .chart-container {
-            position: relative;
-            width: 100%;
-        }
-
-        /* Custom scrollbar */
-        .overflow-y-auto::-webkit-scrollbar {
-            width: 4px;
-        }
-
-        .overflow-y-auto::-webkit-scrollbar-track {
-            background: #f1f5f9;
-            border-radius: 2px;
-        }
-
-        .overflow-y-auto::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 2px;
-        }
-
-        .overflow-y-auto::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
-        }
-
-        /* Hover effects */
-        .hover\:shadow-md:hover {
-            transition: all 0.3s ease;
-        }
-
-        /* Responsive adjustments */
-        @media (max-width: 768px) {
-            .chart-container {
-                height: 250px !important;
-            }
-
-            .grid.grid-cols-2.lg\:grid-cols-4 {
-                grid-template-columns: 1fr;
-            }
-
-            .grid.grid-cols-1.lg\:grid-cols-3 {
-                grid-template-columns: 1fr;
-            }
-
-            .grid.grid-cols-1.lg\:grid-cols-4 {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        @media (max-width: 640px) {
-            .grid.grid-cols-2 {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        /* Loading animation */
-        .loading {
-            opacity: 0.6;
-            pointer-events: none;
-            position: relative;
-        }
-
-        .loading::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 20px;
-            height: 20px;
-            margin: -10px 0 0 -10px;
-            border: 2px solid #f3f3f3;
-            border-top: 2px solid #3498db;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* Enhanced card animations */
-        .hover\:bg-gray-100:hover {
-            transition: background-color 0.2s ease;
-        }
-
-        /* Gradient background for branch header */
-        .bg-gradient-to-r {
-            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
-        }
-
-        /* Progress bars */
-        .h-2 {
-            transition: width 0.5s ease-in-out;
-        }
-
-        /* Notification animation */
-        .fixed.top-4.right-4 {
-            animation: slideInRight 0.3s ease-out;
-        }
-
-        @keyframes slideInRight {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-
-        /* Focus styles for accessibility */
-        select:focus {
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-        }
-
-        /* Print styles */
-        @media print {
-            .fixed, .no-print {
-                display: none !important;
-            }
-
-            .shadow, .shadow-lg, .shadow-md {
-                box-shadow: none !important;
-                border: 1px solid #e5e7eb !important;
-            }
-
-            .bg-gradient-to-r {
-                background: #3b82f6 !important;
-                color: white !important;
-            }
-        }
-
-        /* High density warning styles */
-        .text-red-600 {
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% {
-                opacity: 1;
-            }
-            50% {
-                opacity: 0.7;
-            }
-        }
-    </style>
-@endpush
-
+    }, 1000);
+});
+</script>
+@endsection

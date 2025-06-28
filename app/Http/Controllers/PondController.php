@@ -45,20 +45,6 @@ class PondController extends Controller
 
         // Calculate current stock and get fish types for each pond
         foreach ($ponds as $pond) {
-            // Calculate current stock (initial - sold - mortality)
-            $sold = DB::table('sales as s')
-                ->join('fish_batches as fb', 's.fish_batch_id', '=', 'fb.id')
-                ->where('fb.pond_id', $pond->id)
-                ->whereNull('s.deleted_at')
-                ->sum('s.quantity_fish');
-
-            $mortality = DB::table('mortalities as m')
-                ->join('fish_batches as fb', 'm.fish_batch_id', '=', 'fb.id')
-                ->where('fb.pond_id', $pond->id)
-                ->whereNull('m.deleted_at')
-                ->sum('m.dead_count');
-
-            $pond->current_stock = $pond->total_initial_stock - $sold - $mortality;
 
             // Get fish types in this pond
             $fishTypes = DB::table('fish_batches as fb')
@@ -78,7 +64,6 @@ class PondController extends Controller
             'total_ponds' => $ponds->count(),
             'active_ponds' => $ponds->where('status', 'active')->count(),
             'total_volume' => $ponds->sum('volume_liters'),
-            'total_current_stock' => $ponds->sum('current_stock')
         ];
 
         return view('user.ponds.index', compact('ponds', 'branchInfo', 'stats'));

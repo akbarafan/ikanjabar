@@ -80,7 +80,6 @@
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dibuat</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jenis Pakan</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jumlah</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Per Ekor</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Umur Batch</th>
                         <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
                     </tr>
@@ -109,10 +108,6 @@
                         <td class="px-6 py-4">
                             <div class="text-sm font-medium text-gray-900">{{ number_format($feeding->feed_amount_kg, 2) }} kg</div>
                             <div class="text-xs text-gray-500">{{ number_format($feeding->feed_amount_kg * 1000) }} gram</div>
-                        </td>
-                        <td class="px-6 py-4">
-                            <div class="text-sm text-gray-900">{{ number_format($feeding->feed_per_fish, 1) }}g</div>
-                            <div class="text-xs text-gray-500">{{ number_format($feeding->current_stock) }} ekor</div>
                         </td>
                         <td class="px-6 py-4">
                             <div class="text-sm text-gray-900">{{ $feeding->batch_age_days }} hari</div>

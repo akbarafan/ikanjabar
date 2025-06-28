@@ -55,12 +55,7 @@ class FeedingController extends Controller
         foreach ($feedings as $feeding) {
             // Get current stock for the batch
             $batch = DB::table('fish_batches')->where('id', $feeding->batch_id)->first();
-            $sold = DB::table('sales')->where('fish_batch_id', $feeding->batch_id)->whereNull('deleted_at')->sum('quantity_fish');
-            $mortality = DB::table('mortalities')->where('fish_batch_id', $feeding->batch_id)->whereNull('deleted_at')->sum('dead_count');
-
-            $feeding->current_stock = $batch->initial_count - $sold - $mortality;
-            $feeding->feed_per_fish = $feeding->current_stock > 0 ? ($feeding->feed_amount_kg * 1000) / $feeding->current_stock : 0;
-
+            
             // Calculate batch age at feeding date
             $feeding->batch_age_days = \Carbon\Carbon::parse($batch->date_start)->diffInDays($feeding->date);
         }
