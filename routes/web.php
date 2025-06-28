@@ -65,6 +65,12 @@ Route::get('/feedings/{id}', [FeedingController::class, 'show'])->name('feedings
 Route::put('/feedings/{id}', [FeedingController::class, 'update'])->name('feedings.update');
 Route::delete('/feedings/{id}', [FeedingController::class, 'destroy'])->name('feedings.destroy');
 
+// Mortality Routes
+Route::get('/mortalities', [MortalityController::class, 'index'])->name('mortalities.index');
+Route::post('/mortalities', [MortalityController::class, 'store'])->name('mortalities.store');
+Route::get('/mortalities/{id}', [MortalityController::class, 'show'])->name('mortalities.show');
+Route::put('/mortalities/{id}', [MortalityController::class, 'update'])->name('mortalities.update');
+Route::delete('/mortalities/{id}', [MortalityController::class, 'destroy'])->name('mortalities.destroy');
 
 Route::prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
