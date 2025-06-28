@@ -36,6 +36,20 @@ Route::get('/ponds/{id}', [PondController::class, 'show'])->name('ponds.show');
 Route::put('/ponds/{id}', [PondController::class, 'update'])->name('ponds.update');
 Route::delete('/ponds/{id}', [PondController::class, 'destroy'])->name('ponds.destroy');
 
+// Fish Batches Routes
+Route::get('/fish-batches', [FishBatchController::class, 'index'])->name('fish-batches.index');
+Route::post('/fish-batches', [FishBatchController::class, 'store'])->name('fish-batches.store');
+Route::get('/fish-batches/{id}', [FishBatchController::class, 'show'])->name('fish-batches.show');
+Route::put('/fish-batches/{id}', [FishBatchController::class, 'update'])->name('fish-batches.update');
+Route::delete('/fish-batches/{id}', [FishBatchController::class, 'destroy'])->name('fish-batches.destroy');
+
+// Water Quality Routes
+Route::get('/water-qualities', [WaterQualityController::class, 'index'])->name('water-qualities.index');
+Route::post('/water-qualities', [WaterQualityController::class, 'store'])->name('water-qualities.store');
+Route::get('/water-qualities/{id}', [WaterQualityController::class, 'show'])->name('water-qualities.show');
+Route::put('/water-qualities/{id}', [WaterQualityController::class, 'update'])->name('water-qualities.update');
+Route::delete('/water-qualities/{id}', [WaterQualityController::class, 'destroy'])->name('water-qualities.destroy');
+
 
 Route::prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
