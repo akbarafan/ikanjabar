@@ -90,13 +90,6 @@ class DatabaseSeeder extends Seeder
             'updated_at' => now()
         ]);
 
-        // Fish Stock Snapshots
-        DB::table('fish_stock_snapshots')->insert([
-            'fish_batch_id' => FishBatch::first()->id,
-            'current_stock' => 980,
-            'updated_at' => now()
-        ]);
-
         // Fish Growth Logs
         DB::table('fish_growth_logs')->insert([
             'fish_batch_id' => FishBatch::first()->id,
@@ -158,18 +151,6 @@ class DatabaseSeeder extends Seeder
             'buyer_name' => 'PT Segar Ikan',
             'total_price' => 600000,
             'documentation_file' => null,
-            'created_by' => $userId,
-            'created_at' => now(),
-            'updated_at' => now()
-        ]);
-
-        // Fish Batch Transfers
-        DB::table('fish_batch_transfers')->insert([
-            'source_batch_id' => 1,
-            'target_batch_id' => 1,
-            'transferred_count' => 200,
-            'date_transfer' => now()->subDays(1),
-            'notes' => 'Grading ke kolam 2',
             'created_by' => $userId,
             'created_at' => now(),
             'updated_at' => now()

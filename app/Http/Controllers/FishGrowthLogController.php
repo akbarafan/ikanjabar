@@ -2,345 +2,276 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\FishGrowthLog;
-use App\Models\FishBatch;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 
 class FishGrowthLogController extends Controller
 {
-    public function index()
+    private function getCurrentBranchId()
     {
-        $growthLogs = FishGrowthLog::with(['fishBatch.pond.branch', 'fishBatch.fishType', 'creator'])
-            ->when(request('search'), function($query) {
-                $query->whereHas('fishBatch.pond', function($q) {
-                    $q->where('name', 'like', '%' . request('search') . '%');
-                })->orWhereHas('fishBatch.fishType', function($q) {
-                    $q->where('name', 'like', '%' . request('search') . '%');
-                });
-            })
-            ->when(request('batch_id'), function($query) {
-                $query->where('fish_batch_id', request('batch_id'));
-            })
-            ->when(request('week_number'), function($query) {
-                $query->where('week_number', request('week_number'));
-            })
-            ->latest('date_recorded')
-            ->paginate(15);
-
-        // Tambahkan perhitungan pertumbuhan
-        foreach ($growthLogs as $log) {
-            $log->growth_data = [
-                'weight_growth_from_previous' => $log->weight_growth_from_previous,
-                'growth_percentage' => $log->growth_percentage,
-                'age_in_days' => $log->fishBatch->age_in_days,
-                'current_stock' => $log->fishBatch->current_stock,
-            ];
-        }
-
-        $batches = FishBatch::with(['pond', 'fishType'])->get();
-        $weekNumbers = range(1, 52);
-
-        return view('fish-growth-logs.index', compact('growthLogs', 'batches', 'weekNumbers'));
+        // Sementara hardcode untuk demo, nanti bisa dari session/auth
+        return 1;
     }
 
-    public function create()
+    private function getCurrentUserId()
     {
-        $batches = FishBatch::with(['pond.branch', 'fishType'])
-            ->where(function($query) {
-                $query->whereRaw('
-                    (initial_count -
-                     COALESCE((SELECT SUM(dead_count) FROM mortalities WHERE fish_batch_id = fish_batches.id AND deleted_at IS NULL), 0) -
-                     COALESCE((SELECT SUM(quantity_fish) FROM sales WHERE fish_batch_id = fish_batches.id AND deleted_at IS NULL), 0)
-                    ) > 0
-                ');
-            })
+        // Sementara hardcode untuk demo, nanti bisa dari auth
+        return DB::table('users')->where('branch_id', $this->getCurrentBranchId())->first()->id ?? '550e8400-e29b-41d4-a716-446655440000';
+    }
+
+    public function index()
+    {
+        $branchId = $this->getCurrentBranchId();
+
+        // Get branch info
+        $branchInfo = DB::table('branches')->find($branchId);
+
+        // Get fish growth logs with related data - optimized query
+        $growthLogs = DB::table('fish_growth_logs as fgl')
+            ->join('fish_batches as fb', 'fgl.fish_batch_id', '=', 'fb.id')
+            ->join('ponds as p', 'fb.pond_id', '=', 'p.id')
+            ->join('fish_types as ft', 'fb.fish_type_id', '=', 'ft.id')
+            ->leftJoin('users as u', 'fgl.created_by', '=', 'u.id')
+            ->where('p.branch_id', $branchId)
+            ->whereNull('fgl.deleted_at')
+            ->whereNull('fb.deleted_at')
+            ->select(
+                'fgl.id',
+                'fgl.week_number',
+                'fgl.avg_weight_gram',
+                'fgl.avg_length_cm',
+                'fgl.date_recorded',
+                'fgl.created_at',
+                'fb.id as batch_id',
+                'p.name as pond_name',
+                'p.code as pond_code',
+                'ft.name as fish_type_name',
+                'u.full_name as created_by_name'
+            )
+            ->orderBy('fgl.date_recorded', 'desc')
             ->get();
 
-        return view('fish-growth-logs.create', compact('batches'));
+        // Calculate growth trends for each log
+        foreach ($growthLogs as $log) {
+            // Get previous week data for comparison
+            $previousWeek = DB::table('fish_growth_logs')
+                ->where('fish_batch_id', $log->batch_id)
+                ->where('week_number', $log->week_number - 1)
+                ->whereNull('deleted_at')
+                ->first();
+
+            if ($previousWeek) {
+                $log->weight_growth = $log->avg_weight_gram - $previousWeek->avg_weight_gram;
+                $log->length_growth = $log->avg_length_cm - $previousWeek->avg_length_cm;
+            } else {
+                $log->weight_growth = 0;
+                $log->length_growth = 0;
+            }
+
+            // Calculate batch age at recording
+            $batchStart = DB::table('fish_batches')->where('id', $log->batch_id)->value('date_start');
+            $log->batch_age_days = \Carbon\Carbon::parse($batchStart)->diffInDays($log->date_recorded);
+        }
+
+        // Summary stats
+        $stats = [
+            'total_records' => $growthLogs->count(),
+            'avg_weight' => $growthLogs->avg('avg_weight_gram') ?: 0,
+            'avg_length' => $growthLogs->avg('avg_length_cm') ?: 0,
+            'active_batches' => $growthLogs->unique('batch_id')->count()
+        ];
+
+        // Get dropdown data for form
+        $fishBatches = DB::table('fish_batches as fb')
+            ->join('ponds as p', 'fb.pond_id', '=', 'p.id')
+            ->join('fish_types as ft', 'fb.fish_type_id', '=', 'ft.id')
+            ->where('p.branch_id', $branchId)
+            ->whereNull('fb.deleted_at')
+            ->select('fb.id', 'p.name as pond_name', 'ft.name as fish_type_name')
+            ->get();
+
+        return view('user.fish-growth.index', compact('growthLogs', 'branchInfo', 'stats', 'fishBatches'));
     }
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
+        $request->validate([
             'fish_batch_id' => 'required|exists:fish_batches,id',
-            'week_number' => 'required|integer|min:1|max:52',
+            'week_number' => 'required|integer|min:1',
             'avg_weight_gram' => 'required|numeric|min:0',
             'avg_length_cm' => 'required|numeric|min:0',
-            'date_recorded' => 'required|date',
-            'documentation_file' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
+            'date_recorded' => 'required|date|before_or_equal:today'
         ]);
 
-        // Cek apakah sudah ada log untuk minggu yang sama
-        $existingLog = FishGrowthLog::where('fish_batch_id', $validated['fish_batch_id'])
-            ->where('week_number', $validated['week_number'])
-            ->first();
-
-        if ($existingLog) {
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'Log pertumbuhan untuk minggu ke-' . $validated['week_number'] . ' sudah ada');
-        }
-
-        if ($request->hasFile('documentation_file')) {
-            $validated['documentation_file'] = $request->file('documentation_file')
-                ->store('growth-documentation', 'public');
-        }
-
-        $validated['created_by'] = Auth::id();
-
-        FishGrowthLog::create($validated);
-
-        return redirect()->route('fish-growth-logs.index')
-            ->with('success', 'Log pertumbuhan berhasil ditambahkan');
-    }
-
-    public function show(FishGrowthLog $fishGrowthLog)
-    {
-        $fishGrowthLog->load(['fishBatch.pond.branch', 'fishBatch.fishType', 'creator']);
-
-        // Data perbandingan dengan log sebelumnya dan sesudahnya
-        $previousLog = FishGrowthLog::where('fish_batch_id', $fishGrowthLog->fish_batch_id)
-            ->where('week_number', '<', $fishGrowthLog->week_number)
-            ->orderBy('week_number', 'desc')
-            ->first();
-
-        $nextLog = FishGrowthLog::where('fish_batch_id', $fishGrowthLog->fish_batch_id)
-            ->where('week_number', '>', $fishGrowthLog->week_number)
-            ->orderBy('week_number', 'asc')
-            ->first();
-
-        // Perhitungan detail pertumbuhan
-        $growthAnalysis = [
-            'current' => [
-                'weight' => $fishGrowthLog->avg_weight_gram,
-                'length' => $fishGrowthLog->avg_length_cm,
-                'week' => $fishGrowthLog->week_number,
-                'age_days' => $fishGrowthLog->fishBatch->age_in_days,
-            ],
-            'comparison' => [
-                'previous_weight' => $previousLog?->avg_weight_gram ?? 0,
-                'previous_length' => $previousLog?->avg_length_cm ?? 0,
-                'weight_growth' => $fishGrowthLog->weight_growth_from_previous,
-                'length_growth' => $fishGrowthLog->length_growth_from_previous,
-                'growth_percentage' => $fishGrowthLog->growth_percentage,
-                'weekly_growth_rate' => $fishGrowthLog->weekly_growth_rate,
-            ],
-            'projections' => [
-                'next_week_weight' => $nextLog?->avg_weight_gram ?? null,
-                'projected_harvest_weight' => $this->calculateProjectedHarvestWeight($fishGrowthLog),
-                'days_to_harvest' => $this->calculateDaysToHarvest($fishGrowthLog),
-                'growth_trend' => $this->calculateGrowthTrend($fishGrowthLog),
-            ]
-        ];
-
-        // Data untuk chart pertumbuhan batch
-        $batchGrowthData = $this->getBatchGrowthData($fishGrowthLog->fishBatch);
-
-        return view('fish-growth-logs.show', compact('fishGrowthLog', 'previousLog', 'nextLog', 'growthAnalysis', 'batchGrowthData'));
-    }
-
-    public function edit(FishGrowthLog $fishGrowthLog)
-    {
-        $batches = FishBatch::with(['pond.branch', 'fishType'])->get();
-
-        return view('fish-growth-logs.edit', compact('fishGrowthLog', 'batches'));
-    }
-
-    public function update(Request $request, FishGrowthLog $fishGrowthLog)
-    {
-        $validated = $request->validate([
-            'fish_batch_id' => 'required|exists:fish_batches,id',
-            'week_number' => 'required|integer|min:1|max:52',
-            'avg_weight_gram' => 'required|numeric|min:0',
-            'avg_length_cm' => 'required|numeric|min:0',
-            'date_recorded' => 'required|date',
-            'documentation_file' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
-        ]);
-
-        // Cek duplikasi minggu (kecuali record saat ini)
-        $existingLog = FishGrowthLog::where('fish_batch_id', $validated['fish_batch_id'])
-            ->where('week_number', $validated['week_number'])
-            ->where('id', '!=', $fishGrowthLog->id)
-            ->first();
-
-        if ($existingLog) {
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'Log pertumbuhan untuk minggu ke-' . $validated['week_number'] . ' sudah ada');
-        }
-
-        if ($request->hasFile('documentation_file')) {
-            // Hapus file lama jika ada
-            if ($fishGrowthLog->documentation_file) {
-                Storage::disk('public')->delete($fishGrowthLog->documentation_file);
-            }
-
-            $validated['documentation_file'] = $request->file('documentation_file')
-                ->store('growth-documentation', 'public');
-        }
-
-        $fishGrowthLog->update($validated);
-
-        return redirect()->route('fish-growth-logs.show', $fishGrowthLog)
-            ->with('success', 'Log pertumbuhan berhasil diperbarui');
-    }
-
-    public function destroy(FishGrowthLog $fishGrowthLog)
-    {
-        // Hapus file dokumentasi jika ada
-        if ($fishGrowthLog->documentation_file) {
-            Storage::disk('public')->delete($fishGrowthLog->documentation_file);
-        }
-
-        $fishGrowthLog->delete();
-
-        return redirect()->route('fish-growth-logs.index')
-            ->with('success', 'Log pertumbuhan berhasil dihapus');
-    }
-
-    public function bulkCreate(Request $request)
-    {
-        $validated = $request->validate([
-            'batch_ids' => 'required|array',
-            'batch_ids.*' => 'exists:fish_batches,id',
-            'week_number' => 'required|integer|min:1|max:52',
-            'date_recorded' => 'required|date',
-        ]);
-
-        $batches = FishBatch::whereIn('id', $validated['batch_ids'])->get();
-
-        return view('fish-growth-logs.bulk-create', compact('batches', 'validated'));
-    }
-
-    public function bulkStore(Request $request)
-    {
-        $validated = $request->validate([
-            'logs' => 'required|array',
-            'logs.*.fish_batch_id' => 'required|exists:fish_batches,id',
-            'logs.*.week_number' => 'required|integer|min:1|max:52',
-            'logs.*.avg_weight_gram' => 'required|numeric|min:0',
-            'logs.*.avg_length_cm' => 'required|numeric|min:0',
-            'logs.*.date_recorded' => 'required|date',
-        ]);
-
-        $created = 0;
-        $errors = [];
-
-        foreach ($validated['logs'] as $logData) {
-            // Cek duplikasi
-            $existing = FishGrowthLog::where('fish_batch_id', $logData['fish_batch_id'])
-                ->where('week_number', $logData['week_number'])
+        try {
+            // Verify batch belongs to current branch
+            $batch = DB::table('fish_batches as fb')
+                ->join('ponds as p', 'fb.pond_id', '=', 'p.id')
+                ->where('fb.id', $request->fish_batch_id)
+                ->where('p.branch_id', $this->getCurrentBranchId())
+                ->whereNull('fb.deleted_at')
                 ->first();
 
-            if ($existing) {
-                $batch = FishBatch::find($logData['fish_batch_id']);
-                $errors[] = "Batch {$batch->pond->name} - minggu {$logData['week_number']} sudah ada";
-                continue;
+            if (!$batch) {
+                return response()->json(['success' => false, 'message' => 'Batch ikan tidak valid'], 400);
             }
 
-            $logData['created_by'] = Auth::id();
-            FishGrowthLog::create($logData);
-            $created++;
-        }
+            // Check if record for this batch and week already exists
+            $exists = DB::table('fish_growth_logs')
+                ->where('fish_batch_id', $request->fish_batch_id)
+                ->where('week_number', $request->week_number)
+                ->whereNull('deleted_at')
+                ->exists();
 
-        $message = "{$created} log pertumbuhan berhasil ditambahkan";
-        if (!empty($errors)) {
-            $message .= ". Errors: " . implode(', ', $errors);
-        }
-
-        return redirect()->route('fish-growth-logs.index')
-            ->with('success', $message);
-    }
-
-    // Helper methods
-    private function calculateProjectedHarvestWeight($growthLog)
-    {
-        $batch = $growthLog->fishBatch;
-        $currentWeight = $growthLog->avg_weight_gram;
-        $weeklyGrowthRate = $growthLog->weekly_growth_rate;
-
-        // Asumsi panen pada minggu ke-20 (sekitar 5 bulan)
-        $targetWeek = 20;
-        $weeksRemaining = max(0, $targetWeek - $growthLog->week_number);
-
-        if ($weeklyGrowthRate <= 0) return $currentWeight;
-
-        // Proyeksi dengan pertumbuhan eksponensial yang melambat
-        $projectedWeight = $currentWeight;
-        for ($i = 0; $i < $weeksRemaining; $i++) {
-            $growthFactor = max(0.5, 1 - ($i * 0.05)); // Pertumbuhan melambat seiring waktu
-            $projectedWeight += ($projectedWeight * ($weeklyGrowthRate / 100) * $growthFactor);
-        }
-
-        return round($projectedWeight, 2);
-    }
-
-    private function calculateDaysToHarvest($growthLog)
-    {
-        $targetWeight = 500; // gram, target berat panen
-        $currentWeight = $growthLog->avg_weight_gram;
-        $weeklyGrowthRate = $growthLog->weekly_growth_rate;
-
-        if ($currentWeight >= $targetWeight) return 0;
-        if ($weeklyGrowthRate <= 0) return null;
-
-        // Perhitungan sederhana berdasarkan growth rate
-        $weightNeeded = $targetWeight - $currentWeight;
-        $weeklyGrowth = $currentWeight * ($weeklyGrowthRate / 100);
-
-        if ($weeklyGrowth <= 0) return null;
-
-        $weeksNeeded = $weightNeeded / $weeklyGrowth;
-        return round($weeksNeeded * 7); // konversi ke hari
-    }
-
-    private function calculateGrowthTrend($growthLog)
-    {
-        $recentLogs = FishGrowthLog::where('fish_batch_id', $growthLog->fish_batch_id)
-            ->where('week_number', '<=', $growthLog->week_number)
-            ->orderBy('week_number', 'desc')
-            ->limit(4)
-            ->get();
-
-        if ($recentLogs->count() < 2) return 'insufficient_data';
-
-        $growthRates = [];
-        for ($i = 0; $i < $recentLogs->count() - 1; $i++) {
-            $current = $recentLogs[$i];
-            $previous = $recentLogs[$i + 1];
-
-            if ($previous->avg_weight_gram > 0) {
-                $rate = (($current->avg_weight_gram - $previous->avg_weight_gram) / $previous->avg_weight_gram) * 100;
-                $growthRates[] = $rate;
+            if ($exists) {
+                return response()->json(['success' => false, 'message' => 'Data pertumbuhan untuk minggu ini sudah ada'], 400);
             }
+
+            DB::table('fish_growth_logs')->insert([
+                'fish_batch_id' => $request->fish_batch_id,
+                'week_number' => $request->week_number,
+                'avg_weight_gram' => $request->avg_weight_gram,
+                'avg_length_cm' => $request->avg_length_cm,
+                'date_recorded' => $request->date_recorded,
+                'created_by' => $this->getCurrentUserId(),
+                'created_at' => now(),
+                'updated_at' => now()
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Data pertumbuhan berhasil ditambahkan!'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menambahkan data pertumbuhan. Silakan coba lagi.'
+            ], 500);
         }
-
-        if (empty($growthRates)) return 'insufficient_data';
-
-        $avgGrowthRate = array_sum($growthRates) / count($growthRates);
-
-        if ($avgGrowthRate > 15) return 'excellent';
-        if ($avgGrowthRate > 10) return 'good';
-        if ($avgGrowthRate > 5) return 'moderate';
-        if ($avgGrowthRate > 0) return 'slow';
-        return 'declining';
     }
 
-    private function getBatchGrowthData($batch)
+    public function show($id)
     {
-        return $batch->fishGrowthLogs()
-            ->orderBy('week_number')
-            ->get()
-            ->map(function ($log) {
-                return [
-                    'week' => $log->week_number,
-                    'weight' => $log->avg_weight_gram,
-                    'length' => $log->avg_length_cm,
-                    'date' => $log->date_recorded->format('M d'),
-                    'growth_rate' => $log->weekly_growth_rate,
-                ];
-            });
+        $growthLog = DB::table('fish_growth_logs as fgl')
+            ->join('fish_batches as fb', 'fgl.fish_batch_id', '=', 'fb.id')
+            ->join('ponds as p', 'fb.pond_id', '=', 'p.id')
+            ->where('fgl.id', $id)
+            ->where('p.branch_id', $this->getCurrentBranchId())
+            ->whereNull('fgl.deleted_at')
+            ->select('fgl.*')
+            ->first();
+
+        if (!$growthLog) {
+            return response()->json(['success' => false, 'message' => 'Data tidak ditemukan'], 404);
+        }
+
+        return response()->json(['success' => true, 'data' => $growthLog]);
+    }
+
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+            'fish_batch_id' => 'required|exists:fish_batches,id',
+            'week_number' => 'required|integer|min:1',
+            'avg_weight_gram' => 'required|numeric|min:0',
+            'avg_length_cm' => 'required|numeric|min:0',
+            'date_recorded' => 'required|date|before_or_equal:today'
+        ]);
+
+        try {
+            // Verify growth log belongs to current branch
+            $growthLog = DB::table('fish_growth_logs as fgl')
+                ->join('fish_batches as fb', 'fgl.fish_batch_id', '=', 'fb.id')
+                ->join('ponds as p', 'fb.pond_id', '=', 'p.id')
+                ->where('fgl.id', $id)
+                ->where('p.branch_id', $this->getCurrentBranchId())
+                ->whereNull('fgl.deleted_at')
+                ->first();
+
+            if (!$growthLog) {
+                return response()->json(['success' => false, 'message' => 'Data tidak ditemukan'], 404);
+            }
+
+            // Verify new batch belongs to current branch
+            $batch = DB::table('fish_batches as fb')
+                ->join('ponds as p', 'fb.pond_id', '=', 'p.id')
+                ->where('fb.id', $request->fish_batch_id)
+                ->where('p.branch_id', $this->getCurrentBranchId())
+                ->whereNull('fb.deleted_at')
+                ->first();
+
+            if (!$batch) {
+                return response()->json(['success' => false, 'message' => 'Batch ikan tidak valid'], 400);
+            }
+
+            // Check if record for this batch and week already exists (excluding current record)
+            $exists = DB::table('fish_growth_logs')
+                ->where('fish_batch_id', $request->fish_batch_id)
+                ->where('week_number', $request->week_number)
+                ->where('id', '!=', $id)
+                ->whereNull('deleted_at')
+                ->exists();
+
+            if ($exists) {
+                return response()->json(['success' => false, 'message' => 'Data pertumbuhan untuk minggu ini sudah ada'], 400);
+            }
+
+            DB::table('fish_growth_logs')
+                ->where('id', $id)
+                ->update([
+                    'fish_batch_id' => $request->fish_batch_id,
+                    'week_number' => $request->week_number,
+                    'avg_weight_gram' => $request->avg_weight_gram,
+                    'avg_length_cm' => $request->avg_length_cm,
+                    'date_recorded' => $request->date_recorded,
+                    'updated_at' => now()
+                ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Data pertumbuhan berhasil diperbarui!'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal memperbarui data pertumbuhan. Silakan coba lagi.'
+            ], 500);
+        }
+    }
+
+    public function destroy($id)
+    {
+        try {
+            // Verify growth log belongs to current branch
+            $growthLog = DB::table('fish_growth_logs as fgl')
+                ->join('fish_batches as fb', 'fgl.fish_batch_id', '=', 'fb.id')
+                ->join('ponds as p', 'fb.pond_id', '=', 'p.id')
+                ->where('fgl.id', $id)
+                ->where('p.branch_id', $this->getCurrentBranchId())
+                ->whereNull('fgl.deleted_at')
+                ->first();
+
+            if (!$growthLog) {
+                return response()->json(['success' => false, 'message' => 'Data tidak ditemukan'], 404);
+            }
+
+            // Soft delete
+            DB::table('fish_growth_logs')
+                ->where('id', $id)
+                ->update([
+                    'deleted_at' => now(),
+                    'updated_at' => now()
+                ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Data pertumbuhan berhasil dihapus!'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghapus data pertumbuhan. Silakan coba lagi.'
+            ], 500);
+        }
     }
 }

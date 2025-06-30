@@ -2,295 +2,194 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Pond;
-use App\Models\Branch;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 
 class PondController extends Controller
 {
-    public function index()
+    private function getCurrentBranchId()
     {
-        $ponds = Pond::with(['branch', 'fishBatches', 'waterQualities'])
-            ->when(request('search'), function($query) {
-                $query->where('name', 'like', '%' . request('search') . '%')
-                      ->orWhere('code', 'like', '%' . request('search') . '%');
-            })
-            ->when(request('branch_id'), function($query) {
-                $query->where('branch_id', request('branch_id'));
-            })
-            ->when(request('type'), function($query) {
-                $query->where('type', request('type'));
-            })
-            ->paginate(12);
-
-        // Tambahkan statistik untuk setiap kolam
-        foreach ($ponds as $pond) {
-            $pond->statistics = [
-                'current_stock' => $pond->current_stock,
-                'optimal_capacity' => $pond->optimal_capacity,
-                'density_percentage' => $pond->density_percentage,
-                'density_status' => $pond->density_status,
-                'latest_water_quality' => $pond->latest_water_quality,
-                'active_batches' => $pond->fishBatches()->count(),
-            ];
-        }
-
-        $branches = Branch::all();
-        $pondTypes = ['tanah', 'beton', 'viber', 'terpal'];
-
-        return view('ponds.index', compact('ponds', 'branches', 'pondTypes'));
+        // Sementara hardcode untuk demo, nanti bisa dari session/auth
+        return 1;
     }
 
-    public function create()
+    public function index()
     {
-        $branches = Branch::all();
-        $pondTypes = ['tanah', 'beton', 'viber', 'terpal'];
-        return view('user.ponds.create', compact('branches', 'pondTypes'));
+        $branchId = $this->getCurrentBranchId();
+
+        // Get branch info
+        $branchInfo = DB::table('branches')->find($branchId);
+
+        // Get ponds with batch summary - optimized query
+        $ponds = DB::table('ponds as p')
+            ->leftJoin('fish_batches as fb', function ($join) {
+                $join->on('p.id', '=', 'fb.pond_id')
+                    ->whereNull('fb.deleted_at');
+            })
+            ->leftJoin('fish_types as ft', 'fb.fish_type_id', '=', 'ft.id')
+            ->where('p.branch_id', $branchId)
+            ->select(
+                'p.id',
+                'p.name',
+                'p.code',
+                'p.type',
+                'p.volume_liters',
+                'p.description',
+                'p.created_at',
+                DB::raw('COUNT(DISTINCT fb.id) as active_batches'),
+                DB::raw('COALESCE(SUM(fb.initial_count), 0) as total_initial_stock')
+            )
+            ->groupBy('p.id', 'p.name', 'p.code', 'p.type', 'p.volume_liters', 'p.description', 'p.created_at')
+            ->orderBy('p.created_at', 'desc')
+            ->get();
+
+        // Calculate current stock and get fish types for each pond
+        foreach ($ponds as $pond) {
+
+            // Get fish types in this pond
+            $fishTypes = DB::table('fish_batches as fb')
+                ->join('fish_types as ft', 'fb.fish_type_id', '=', 'ft.id')
+                ->where('fb.pond_id', $pond->id)
+                ->whereNull('fb.deleted_at')
+                ->distinct()
+                ->pluck('ft.name')
+                ->toArray();
+
+            $pond->fish_types = $fishTypes;
+            $pond->status = $pond->active_batches > 0 ? 'active' : 'empty';
+        }
+
+        // Summary stats
+        $stats = [
+            'total_ponds' => $ponds->count(),
+            'active_ponds' => $ponds->where('status', 'active')->count(),
+            'total_volume' => $ponds->sum('volume_liters'),
+        ];
+
+        return view('user.ponds.index', compact('ponds', 'branchInfo', 'stats'));
     }
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'branch_id' => 'required|exists:branches,id',
+        $request->validate([
             'name' => 'required|string|max:100',
-            'code' => 'required|string|max:50|unique:ponds,code',
+            'code' => 'required|string|max:50|unique:ponds,code,NULL,id,branch_id,' . $this->getCurrentBranchId(),
             'type' => 'required|in:tanah,beton,viber,terpal',
             'volume_liters' => 'required|numeric|min:1',
-            'description' => 'nullable|string',
-            'documentation_file' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
+            'description' => 'nullable|string|max:500'
         ]);
 
-        if ($request->hasFile('documentation_file')) {
-            $validated['documentation_file'] = $request->file('documentation_file')
-                ->store('pond-documentation', 'public');
-        }
+        try {
+            DB::table('ponds')->insert([
+                'branch_id' => $this->getCurrentBranchId(),
+                'name' => trim($request->name),
+                'code' => trim($request->code),
+                'type' => $request->type,
+                'volume_liters' => $request->volume_liters,
+                'description' => $request->description ? trim($request->description) : null,
+                'created_at' => now(),
+                'updated_at' => now()
+            ]);
 
-        $pond = Pond::create($validated);
-
-        if ($request->expectsJson()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Kolam berhasil ditambahkan',
-                'pond' => $pond
+                'message' => 'Kolam berhasil ditambahkan!'
             ]);
-        }
-
-        return redirect()->route('user.ponds.index')
-            ->with('success', 'Kolam berhasil ditambahkan');
-    }
-
-    public function show(Pond $pond)
-    {
-        $pond->load([
-            'branch',
-            'fishBatches.fishType',
-            'fishBatches.mortalities',
-            'fishBatches.sales',
-            'waterQualities' => function ($query) {
-                $query->latest('date_recorded')->limit(10);
-            }
-        ]);
-
-        // Statistik detail kolam
-        $statistics = [
-            'capacity' => [
-                'volume_liters' => number_format($pond->volume_liters, 0),
-                'optimal_capacity' => number_format($pond->optimal_capacity, 0),
-                'current_stock' => number_format($pond->current_stock, 0),
-                'density_percentage' => $pond->density_percentage,
-                'density_status' => $pond->density_status,
-            ],
-            'production' => [
-                'active_batches' => $pond->fishBatches()->count(),
-                'total_fish_sold' => $pond->fishBatches()->with('sales')->get()->sum(function ($batch) {
-                    return $batch->sales->sum('quantity_fish');
-                }),
-                'total_revenue' => $pond->fishBatches()->with('sales')->get()->sum(function ($batch) {
-                    return $batch->sales->sum('total_price');
-                }),
-                'average_mortality_rate' => $this->calculatePondMortalityRate($pond),
-            ],
-            'water_quality' => [
-                'latest_test' => $pond->latest_water_quality,
-                'quality_status' => $pond->latest_water_quality ? $pond->latest_water_quality->water_quality_status : 'unknown',
-                'total_tests' => $pond->waterQualities()->count(),
-            ]
-        ];
-
-        // Data untuk charts
-        $waterQualityTrend = $this->getWaterQualityTrend($pond);
-        $stockHistory = $this->getStockHistory($pond);
-        $monthlyProduction = $this->getMonthlyProduction($pond);
-
-        return view('user.ponds.show', compact('pond', 'statistics', 'waterQualityTrend', 'stockHistory', 'monthlyProduction'));
-    }
-
-    public function edit(Pond $pond)
-    {
-        if (request()->expectsJson()) {
+        } catch (\Exception $e) {
             return response()->json([
-                'success' => true,
-                'pond' => [
-                    'id' => $pond->id,
-                    'branch_id' => $pond->branch_id,
-                    'name' => $pond->name,
-                    'code' => $pond->code,
-                    'type' => $pond->type,
-                    'volume_liters' => $pond->volume_liters,
-                    'description' => $pond->description,
-                    'documentation_file' => $pond->documentation_file,
-                    'documentation_file_url' => $pond->documentation_file ? Storage::url($pond->documentation_file) : null,
-                ]
-            ]);
+                'success' => false,
+                'message' => 'Gagal menambahkan kolam. Silakan coba lagi.'
+            ], 500);
         }
-
-        $branches = Branch::all();
-        $pondTypes = ['tanah', 'beton', 'viber', 'terpal'];
-        return view('user.ponds.edit', compact('pond', 'branches', 'pondTypes'));
     }
 
-    public function update(Request $request, Pond $pond)
+    public function show($id)
     {
-        $validated = $request->validate([
-            'branch_id' => 'required|exists:branches,id',
+        $pond = DB::table('ponds')
+            ->where('id', $id)
+            ->where('branch_id', $this->getCurrentBranchId())
+            ->first();
+
+        if (!$pond) {
+            return response()->json(['success' => false, 'message' => 'Data tidak ditemukan'], 404);
+        }
+
+        return response()->json(['success' => true, 'data' => $pond]);
+    }
+
+    public function update(Request $request, $id)
+    {
+        $request->validate([
             'name' => 'required|string|max:100',
-            'code' => 'required|string|max:50|unique:ponds,code,' . $pond->id,
+            'code' => 'required|string|max:50|unique:ponds,code,' . $id . ',id,branch_id,' . $this->getCurrentBranchId(),
             'type' => 'required|in:tanah,beton,viber,terpal',
             'volume_liters' => 'required|numeric|min:1',
-            'description' => 'nullable|string',
-            'documentation_file' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
+            'description' => 'nullable|string|max:500'
         ]);
 
-        if ($request->hasFile('documentation_file')) {
-            // Hapus file lama jika ada
-            if ($pond->documentation_file) {
-                Storage::disk('public')->delete($pond->documentation_file);
+        try {
+            $updated = DB::table('ponds')
+                ->where('id', $id)
+                ->where('branch_id', $this->getCurrentBranchId())
+                ->update([
+                    'name' => trim($request->name),
+                    'code' => trim($request->code),
+                    'type' => $request->type,
+                    'volume_liters' => $request->volume_liters,
+                    'description' => $request->description ? trim($request->description) : null,
+                    'updated_at' => now()
+                ]);
+
+            if (!$updated) {
+                return response()->json(['success' => false, 'message' => 'Data tidak ditemukan'], 404);
             }
-            $validated['documentation_file'] = $request->file('documentation_file')
-                ->store('pond-documentation', 'public');
-        }
 
-        $pond->update($validated);
-
-        if ($request->expectsJson()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Kolam berhasil diperbarui',
-                'pond' => $pond
+                'message' => 'Kolam berhasil diperbarui!'
             ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal memperbarui kolam. Silakan coba lagi.'
+            ], 500);
         }
-
-        return redirect()->route('user.ponds.index')
-            ->with('success', 'Kolam berhasil diperbarui');
     }
 
-    public function destroy(Pond $pond)
+    public function destroy($id)
     {
-        // Cek apakah kolam masih memiliki batch aktif
-        if ($pond->fishBatches()->count() > 0) {
-            if (request()->expectsJson()) {
+        try {
+            // Check if pond is being used
+            $isUsed = DB::table('fish_batches')
+                ->where('pond_id', $id)
+                ->whereNull('deleted_at')
+                ->exists();
+
+            if ($isUsed) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Kolam tidak dapat dihapus karena masih memiliki batch ikan aktif'
-                ], 422);
+                    'message' => 'Kolam tidak dapat dihapus karena masih digunakan dalam batch aktif.'
+                ], 400);
             }
 
-            return redirect()->route('ponds.index')
-                ->with('error', 'Kolam tidak dapat dihapus karena masih memiliki batch ikan aktif');
-        }
+            $deleted = DB::table('ponds')
+                ->where('id', $id)
+                ->where('branch_id', $this->getCurrentBranchId())
+                ->delete();
 
-        // Hapus file dokumentasi jika ada
-        if ($pond->documentation_file) {
-            Storage::disk('public')->delete($pond->documentation_file);
-        }
+            if (!$deleted) {
+                return response()->json(['success' => false, 'message' => 'Data tidak ditemukan'], 404);
+            }
 
-        $pond->delete();
-
-        if (request()->expectsJson()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Kolam berhasil dihapus'
+                'message' => 'Kolam berhasil dihapus!'
             ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghapus kolam. Silakan coba lagi.'
+            ], 500);
         }
-
-        return redirect()->route('user.ponds.index')
-            ->with('success', 'Kolam berhasil dihapus');
-    }
-
-    // Helper methods tetap sama seperti sebelumnya
-    private function calculatePondMortalityRate($pond)
-    {
-        $totalInitial = $pond->fishBatches()->sum('initial_count');
-        $totalDeaths = 0;
-
-        foreach ($pond->fishBatches as $batch) {
-            $totalDeaths += $batch->mortalities()->sum('dead_count');
-        }
-
-        if ($totalInitial == 0) return 0;
-        return round(($totalDeaths / $totalInitial) * 100, 2);
-    }
-
-    private function getWaterQualityTrend($pond)
-    {
-        return $pond->waterQualities()
-            ->orderBy('date_recorded', 'desc')
-            ->limit(30)
-            ->get()
-            ->reverse()
-            ->map(function ($quality) {
-                return [
-                    'date' => $quality->date_recorded->format('M d'),
-                    'ph' => $quality->ph,
-                    'temperature' => $quality->temperature_c,
-                    'do' => $quality->do_mg_l,
-                    'ammonia' => $quality->ammonia_mg_l,
-                    'status' => $quality->water_quality_status,
-                ];
-            });
-    }
-
-    private function getStockHistory($pond)
-    {
-        $history = [];
-        foreach ($pond->fishBatches as $batch) {
-            $history[] = [
-                'batch_id' => $batch->id,
-                'fish_type' => $batch->fishType->name,
-                'date_start' => $batch->date_start->format('M d, Y'),
-                'initial_count' => $batch->initial_count,
-                'current_stock' => $batch->current_stock,
-                'status' => $batch->status,
-            ];
-        }
-        return collect($history)->sortByDesc('date_start');
-    }
-
-    private function getMonthlyProduction($pond)
-    {
-        $production = [];
-        for ($i = 11; $i >= 0; $i--) {
-            $month = now()->subMonths($i);
-            $totalSales = 0;
-            $totalRevenue = 0;
-
-            foreach ($pond->fishBatches as $batch) {
-                $monthlySales = $batch->sales()
-                    ->whereYear('date', $month->year)
-                    ->whereMonth('date', $month->month)
-                    ->get();
-
-                $totalSales += $monthlySales->sum('quantity_fish');
-                $totalRevenue += $monthlySales->sum('total_price');
-            }
-
-            $production[] = [
-                'month' => $month->format('M Y'),
-                'sales' => $totalSales,
-                'revenue' => $totalRevenue,
-            ];
-        }
-        return $production;
     }
 }
