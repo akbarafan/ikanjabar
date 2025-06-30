@@ -25,7 +25,7 @@
         <!-- Branches -->
         <a href="{{ route('admin.branches.index') }}" class="nav-item flex items-center px-6 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-all duration-300 transform hover:translate-x-2 {{ request()->routeIs('admin.branches.*') ? 'sidebar-active' : '' }}">
             <i class="fas fa-building mr-3 transition-transform duration-300 hover:scale-110"></i>
-            <span class="transition-all duration-300">Cabang</span>
+            <span class="transition-all duration-300">Monitoring</span>
         </a>
 
         <!-- Users -->
@@ -35,7 +35,7 @@
         </a>
 
         <!-- Monitoring -->
-        <div class="mt-4">
+        {{-- <div class="mt-4">
             <div class="px-6 py-2">
                 <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider animate-fade-in">Monitoring Global</p>
             </div>
@@ -63,7 +63,7 @@
                 <i class="fas fa-skull-crossbones mr-3 transition-transform duration-300 hover:rotate-12"></i>
                 <span class="transition-all duration-300">Mortalitas</span>
             </a>
-        </div>
+        </div> --}}
 
         <!-- Transaksi -->
         <div class="mt-4">
@@ -74,14 +74,14 @@
                 <i class="fas fa-shopping-cart mr-3 transition-transform duration-300 hover:scale-110"></i>
                 <span class="transition-all duration-300">Penjualan</span>
             </a>
-            <a href="{{ route('admin.fish-batches.transfer.form', 1) }}" class="nav-item flex items-center px-6 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-all duration-300 transform hover:translate-x-2">
+            {{-- <a href="{{ route('admin.fish-batches.transfer.form', 1) }}" class="nav-item flex items-center px-6 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-all duration-300 transform hover:translate-x-2">
                 <i class="fas fa-exchange-alt mr-3 transition-transform duration-300 hover:rotate-180"></i>
                 <span class="transition-all duration-300">Transfer Batch</span>
-            </a>
+            </a> --}}
         </div>
 
         <!-- Reports -->
-        <div class="mt-4">
+        {{-- <div class="mt-4">
             <div class="px-6 py-2">
                 <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider animate-fade-in">Laporan</p>
             </div>
@@ -97,7 +97,7 @@
                 <i class="fas fa-file-export mr-3 transition-transform duration-300 hover:scale-110"></i>
                 <span class="transition-all duration-300">Laporan Kualitas Air</span>
             </a>
-        </div>
+        </div> --}}
 
         <!-- Settings -->
         <div class="mt-4 pb-6">
@@ -106,16 +106,16 @@
             </div>
             <a href="{{ route('settings') }}" class="nav-item flex items-center px-6 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-all duration-300 transform hover:translate-x-2 {{ request()->routeIs('settings') ? 'sidebar-active' : '' }}">
                 <i class="fas fa-cog mr-3 transition-transform duration-300 hover:rotate-180"></i>
-                <span class="transition-all duration-300">Konfigurasi Sistem</span>
+                <span class="transition-all duration-300">Pengaturan Admin</span>
             </a>
-            <a href="#" class="nav-item flex items-center px-6 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-all duration-300 transform hover:translate-x-2">
+            {{-- <a href="#" class="nav-item flex items-center px-6 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-all duration-300 transform hover:translate-x-2">
                 <i class="fas fa-shield-alt mr-3 transition-transform duration-300 hover:scale-110"></i>
                 <span class="transition-all duration-300">Keamanan</span>
             </a>
             <a href="#" class="nav-item flex items-center px-6 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-all duration-300 transform hover:translate-x-2">
                 <i class="fas fa-history mr-3 transition-transform duration-300 hover:rotate-12"></i>
                 <span class="transition-all duration-300">Log Aktivitas</span>
-            </a>
+            </a> --}}
         </div>
     </nav>
 </div>

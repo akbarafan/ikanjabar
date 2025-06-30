@@ -8,11 +8,19 @@ use Illuminate\Support\Facades\Auth;
 
 class BranchController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $branches = Branch::with(['users', 'ponds'])
-            ->withCount(['users', 'ponds'])
-            ->paginate(10);
+        $query = Branch::with(['users', 'ponds'])
+            ->withCount(['users', 'ponds']);
+
+        // Handle search functionality
+        $searchTerm = null;
+        if ($request->has('search') && !empty($request->search)) {
+            $searchTerm = $request->search;
+            $query->where('name', 'LIKE', '%' . $searchTerm . '%');
+        }
+
+        $branches = $query->paginate(10);
 
         // Perhitungan statistik per cabang
         foreach ($branches as $branch) {
@@ -28,7 +36,67 @@ class BranchController extends Controller
             ];
         }
 
-        return view('admin.branches.index', compact('branches'));
+        // If it's an AJAX request, return JSON
+        if ($request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'branches' => $branches,
+                    'search_term' => $searchTerm,
+                    'total' => $branches->total(),
+                    'has_results' => $branches->count() > 0
+                ],
+                'html' => view('admin.branches.partials.table', compact('branches', 'searchTerm'))->render(),
+                'pagination' => $branches->appends(['search' => $searchTerm])->links()->render()
+            ]);
+        }
+
+        return view('admin.branches.index', compact('branches', 'searchTerm'));
+    }
+
+    public function search(Request $request)
+    {
+        $searchTerm = $request->input('search');
+        
+        $query = Branch::with(['users', 'ponds'])
+            ->withCount(['users', 'ponds']);
+
+        if (!empty($searchTerm)) {
+            $query->where('name', 'LIKE', '%' . $searchTerm . '%');
+        }
+
+        $branches = $query->paginate(10);
+
+        // Perhitungan statistik per cabang
+        foreach ($branches as $branch) {
+            $branch->statistics = [
+                'total_ponds' => $branch->ponds_count ?? 0,
+                'total_volume' => $branch->ponds->sum('volume_liters') ?? 0,
+                'total_active_batches' => $branch->ponds->sum(function($pond) {
+                    return $pond->fishBatches()->whereNull('deleted_at')->count();
+                }) ?? 0,
+                'total_fish_stock' => $this->calculateTotalFishStock($branch),
+                'total_sales' => $this->calculateTotalSales($branch),
+                'average_water_quality' => $this->calculateAverageWaterQuality($branch),
+            ];
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'branches' => $branches,
+                'search_term' => $searchTerm,
+                'total' => $branches->total(),
+                'has_results' => $branches->count() > 0
+            ],
+            'html' => view('admin.branches.partials.table', compact('branches', 'searchTerm'))->render(),
+            'pagination' => $branches->appends(['search' => $searchTerm])->links()->render(),
+            'search_info' => view('admin.branches.partials.search-info', [
+                'searchTerm' => $searchTerm,
+                'total' => $branches->total(),
+                'hasResults' => $branches->count() > 0
+            ])->render()
+        ]);
     }
 
     public function create()
@@ -270,7 +338,7 @@ class BranchController extends Controller
         return $salesData;
     }
 
-        private function getPondTypeDistribution($branch)
+    private function getPondTypeDistribution($branch)
     {
         return $branch->ponds()
             ->selectRaw('type, COUNT(*) as count')

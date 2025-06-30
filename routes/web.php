@@ -1,8 +1,10 @@
 <?php
 
+use App\Http\Controllers\Admin\BranchDetailController;
 use App\Http\Controllers\UserDashboardController;
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\BranchController;
+use App\Http\Controllers\BranchDetailController as MainBranchDetailController;
 use App\Http\Controllers\PondController;
 use App\Http\Controllers\FishBatchController;
 use App\Http\Controllers\WaterQualityController;
@@ -23,8 +25,15 @@ Route::get('/dashboard', [UserDashboardController::class, 'index'])->name('user.
 Route::prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
     Route::resource('users', UserController::class);
+    
+    // Branch routes with search functionality
     Route::resource('branches', BranchController::class);
+    Route::post('branches/search', [BranchController::class, 'search'])->name('branches.search');
+    
     Route::resource('ponds', PondController::class);
+    
+    // Branch detail route - tambahkan ini
+    Route::get('branches/{branch}/detail', [MainBranchDetailController::class, 'show'])->name('branches.detail');
 
     Route::prefix('fish-batches')->name('fish-batches.')->group(function () {
         Route::get('/', [FishBatchController::class, 'index'])->name('index');
@@ -51,7 +60,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::resource('mortality', MortalityController::class);
     Route::get('/mortality/batch/{fishBatch}', [MortalityController::class, 'forBatch'])->name('mortality.batch');
 
-    Route::resource('sales', SalesController::class);
+    Route::resource('sales', SalesController ::class);
     Route::get('/sales/batch/{fishBatch}', [SalesController::class, 'forBatch'])->name('sales.batch');
 
     Route::prefix('reports')->name('reports.')->group(function () {
