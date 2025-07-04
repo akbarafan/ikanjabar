@@ -17,7 +17,11 @@ use Carbon\Carbon;
 
 class UserDashboardController extends Controller
 {
-    private $userBranchId = 1;
+    // Hapus private $userBranchId = 1; dan ganti dengan method
+    private function getUserBranchId()
+    {
+        return Auth::user()->branch_id;
+    }
 
     public function index(Request $request)
     {
@@ -37,22 +41,25 @@ class UserDashboardController extends Controller
                 'selectedPeriod' => $period,
                 'selectedPondId' => $selectedPondId,
                 'pondOptions' => $this->getPondOptions(),
+                'currentUser' => Auth::user(), // Tambahkan info user yang login
             ]
         ));
     }
 
     private function getBasicStats()
     {
+        $userBranchId = $this->getUserBranchId();
+
         // Get all batches for this branch
         $batchesData = DB::table('fish_batches as fb')
             ->join('ponds as p', 'fb.pond_id', '=', 'p.id')
-            ->where('p.branch_id', $this->userBranchId)
+            ->where('p.branch_id', $userBranchId)
             ->whereNull('fb.deleted_at')
             ->select('fb.id', 'fb.initial_count', 'fb.fish_type_id')
             ->get();
 
-        $totalPonds = DB::table('ponds')->where('branch_id', $this->userBranchId)->count();
-        $totalFishTypes = DB::table('fish_types')->where('branch_id', $this->userBranchId)->count();
+        $totalPonds = DB::table('ponds')->where('branch_id', $userBranchId)->count();
+        $totalFishTypes = DB::table('fish_types')->where('branch_id', $userBranchId)->count();
 
         // Calculate total current stock
         $totalCurrentStock = 0;
@@ -100,10 +107,12 @@ class UserDashboardController extends Controller
 
     private function getMonthlyRevenue()
     {
+        $userBranchId = $this->getUserBranchId();
+
         $revenues = DB::table('sales as s')
             ->join('fish_batches as fb', 's.fish_batch_id', '=', 'fb.id')
             ->join('ponds as p', 'fb.pond_id', '=', 'p.id')
-            ->where('p.branch_id', $this->userBranchId)
+            ->where('p.branch_id', $userBranchId)
             ->whereNull('s.deleted_at')
             ->selectRaw('
                 SUM(CASE WHEN MONTH(s.date) = MONTH(NOW()) AND YEAR(s.date) = YEAR(NOW())
@@ -126,8 +135,10 @@ class UserDashboardController extends Controller
 
     private function getPondStockDetails()
     {
+        $userBranchId = $this->getUserBranchId();
+
         // Get all ponds for this branch
-        $ponds = DB::table('ponds')->where('branch_id', $this->userBranchId)->get();
+        $ponds = DB::table('ponds')->where('branch_id', $userBranchId)->get();
 
         $pondStockDetails = collect();
 
@@ -210,21 +221,24 @@ class UserDashboardController extends Controller
 
     private function getBranchInfo()
     {
+        $userBranchId = $this->getUserBranchId();
+
         return DB::table('branches')
-            ->where('id', $this->userBranchId)
+            ->where('id', $userBranchId)
             ->select('name', 'location', 'contact_person', 'pic_name')
             ->first();
     }
 
     private function getFishSalesAnalysis($period)
     {
+        $userBranchId = $this->getUserBranchId();
         $dateRange = $this->getDateRange($period);
 
         $topFishSales = DB::table('sales as s')
             ->join('fish_batches as fb', 's.fish_batch_id', '=', 'fb.id')
             ->join('fish_types as ft', 'fb.fish_type_id', '=', 'ft.id')
             ->join('ponds as p', 'fb.pond_id', '=', 'p.id')
-            ->where('p.branch_id', $this->userBranchId)
+            ->where('p.branch_id', $userBranchId)
             ->whereBetween('s.date', [$dateRange['start'], $dateRange['end']])
             ->whereNull('s.deleted_at')
             ->select(
@@ -253,7 +267,7 @@ class UserDashboardController extends Controller
     private function getDateRange($period)
     {
         $end = now();
-        $start = match($period) {
+        $start = match ($period) {
             '3months' => now()->subMonths(3),
             '6months' => now()->subMonths(6),
             '1year' => now()->subYear(),
@@ -265,7 +279,7 @@ class UserDashboardController extends Controller
 
     private function getPeriodLabel($period)
     {
-        return match($period) {
+        return match ($period) {
             '3months' => '3 Bulan Terakhir',
             '6months' => '6 Bulan Terakhir',
             '1year' => '1 Tahun Terakhir',
@@ -275,8 +289,10 @@ class UserDashboardController extends Controller
 
     private function getPondsStatus()
     {
+        $userBranchId = $this->getUserBranchId();
+
         return Pond::with(['latestWaterQuality'])
-            ->where('branch_id', $this->userBranchId)
+            ->where('branch_id', $userBranchId)
             ->get()
             ->map(function ($pond) {
                 $wq = $pond->latestWaterQuality;
@@ -310,9 +326,11 @@ class UserDashboardController extends Controller
 
     private function getRecentAlerts()
     {
+        $userBranchId = $this->getUserBranchId();
+
         return WaterQuality::with('pond')
-            ->whereHas('pond', function($query) {
-                $query->where('branch_id', $this->userBranchId);
+            ->whereHas('pond', function ($query) use ($userBranchId) {
+                $query->where('branch_id', $userBranchId);
             })
             ->whereDate('date_recorded', '>=', now()->subDay())
             ->get()
@@ -338,14 +356,15 @@ class UserDashboardController extends Controller
 
     private function getWaterQualityTrend($selectedPondId = null)
     {
+        $userBranchId = $this->getUserBranchId();
         $data = ['labels' => collect(), 'temperature' => collect(), 'ph' => collect(), 'do' => collect(), 'ammonia' => collect()];
 
         for ($i = 6; $i >= 0; $i--) {
             $date = now()->subDays($i);
             $data['labels']->push($date->format('d M'));
 
-            $query = WaterQuality::whereHas('pond', function ($q) {
-                $q->where('branch_id', $this->userBranchId);
+            $query = WaterQuality::whereHas('pond', function ($q) use ($userBranchId) {
+                $q->where('branch_id', $userBranchId);
             })->whereDate('date_recorded', $date);
 
             if ($selectedPondId) {
@@ -370,10 +389,12 @@ class UserDashboardController extends Controller
 
     private function getProductionDistribution()
     {
+        $userBranchId = $this->getUserBranchId();
+
         $fishTypes = DB::table('fish_types as ft')
             ->join('fish_batches as fb', 'ft.id', '=', 'fb.fish_type_id')
             ->join('ponds as p', 'fb.pond_id', '=', 'p.id')
-            ->where('ft.branch_id', $this->userBranchId)
+            ->where('ft.branch_id', $userBranchId)
             ->whereNull('fb.deleted_at')
             ->select('ft.name', 'ft.id')
             ->groupBy('ft.id', 'ft.name')
@@ -427,10 +448,12 @@ class UserDashboardController extends Controller
 
     private function getGrowthAnalysis()
     {
+        $userBranchId = $this->getUserBranchId();
+
         $growthData = DB::table('fish_growth_logs as fgl')
             ->join('fish_batches as fb', 'fgl.fish_batch_id', '=', 'fb.id')
             ->join('ponds as p', 'fb.pond_id', '=', 'p.id')
-            ->where('p.branch_id', $this->userBranchId)
+            ->where('p.branch_id', $userBranchId)
             ->whereNull('fgl.deleted_at')
             ->selectRaw('
                 fgl.week_number,
@@ -450,10 +473,12 @@ class UserDashboardController extends Controller
 
     private function getHarvestPredictions()
     {
+        $userBranchId = $this->getUserBranchId();
+
         $predictions = DB::table('fish_batches as fb')
             ->join('ponds as p', 'fb.pond_id', '=', 'p.id')
             ->join('fish_types as ft', 'fb.fish_type_id', '=', 'ft.id')
-            ->where('p.branch_id', $this->userBranchId)
+            ->where('p.branch_id', $userBranchId)
             ->whereNull('fb.deleted_at')
             ->select('fb.id', 'fb.date_start', 'fb.initial_count', 'ft.name as fish_type', 'p.name as pond_name')
             ->get()
@@ -504,17 +529,19 @@ class UserDashboardController extends Controller
 
     private function getPerformanceMetrics()
     {
+        $userBranchId = $this->getUserBranchId();
+
         // Survival rate calculation
         $totalInitial = DB::table('fish_batches as fb')
             ->join('ponds as p', 'fb.pond_id', '=', 'p.id')
-            ->where('p.branch_id', $this->userBranchId)
+            ->where('p.branch_id', $userBranchId)
             ->whereNull('fb.deleted_at')
             ->sum('fb.initial_count');
 
         $totalMortality = DB::table('mortalities as m')
             ->join('fish_batches as fb', 'm.fish_batch_id', '=', 'fb.id')
             ->join('ponds as p', 'fb.pond_id', '=', 'p.id')
-            ->where('p.branch_id', $this->userBranchId)
+            ->where('p.branch_id', $userBranchId)
             ->whereNull('m.deleted_at')
             ->sum('m.dead_count');
 
@@ -524,14 +551,14 @@ class UserDashboardController extends Controller
         $totalFeed = DB::table('feedings as f')
             ->join('fish_batches as fb', 'f.fish_batch_id', '=', 'fb.id')
             ->join('ponds as p', 'fb.pond_id', '=', 'p.id')
-            ->where('p.branch_id', $this->userBranchId)
+            ->where('p.branch_id', $userBranchId)
             ->whereNull('f.deleted_at')
             ->sum('f.feed_amount_kg');
 
         $totalSalesWeight = DB::table('sales as s')
             ->join('fish_batches as fb', 's.fish_batch_id', '=', 'fb.id')
             ->join('ponds as p', 'fb.pond_id', '=', 'p.id')
-            ->where('p.branch_id', $this->userBranchId)
+            ->where('p.branch_id', $userBranchId)
             ->whereNull('s.deleted_at')
             ->selectRaw('SUM(s.quantity_fish * s.avg_weight_per_fish_kg) as total_weight')
             ->value('total_weight');
@@ -548,8 +575,10 @@ class UserDashboardController extends Controller
 
     private function getPondOptions()
     {
+        $userBranchId = $this->getUserBranchId();
+
         return DB::table('ponds')
-            ->where('branch_id', $this->userBranchId)
+            ->where('branch_id', $userBranchId)
             ->select('id', 'name', 'code')
             ->orderBy('name')
             ->get();

@@ -3,31 +3,83 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class FeedingController extends Controller
 {
+    private const ITEMS_PER_PAGE = 10;
+
     private function getCurrentBranchId()
     {
         // Sementara hardcode untuk demo, nanti bisa dari session/auth
-        return 1;
+        return Auth::user()->branch_id;
     }
 
     private function getCurrentUserId()
     {
         // Sementara hardcode untuk demo, nanti bisa dari auth
-        return DB::table('users')->where('branch_id', $this->getCurrentBranchId())->first()->id ?? '550e8400-e29b-41d4-a716-446655440000';
+        return Auth::user()->id;
     }
 
-    public function index()
+    public function index(Request $request)
     {
         $branchId = $this->getCurrentBranchId();
+        $page = (int) $request->get('page', 1);
+        $offset = ($page - 1) * self::ITEMS_PER_PAGE;
 
         // Get branch info
         $branchInfo = DB::table('branches')->find($branchId);
 
-        // Get feedings with related data - optimized query
-        $feedings = DB::table('feedings as f')
+        // Get total count for pagination
+        $totalFeedings = DB::table('feedings as f')
+            ->join('fish_batches as fb', 'f.fish_batch_id', '=', 'fb.id')
+            ->join('ponds as p', 'fb.pond_id', '=', 'p.id')
+            ->where('p.branch_id', $branchId)
+            ->whereNull('f.deleted_at')
+            ->whereNull('fb.deleted_at')
+            ->count();
+
+        // Get feedings with pagination - optimized query
+        $feedings = $this->getFeedingsQuery($branchId)
+            ->limit(self::ITEMS_PER_PAGE)
+            ->offset($offset)
+            ->get();
+
+        // Process feedings data
+        $this->processFeedingsData($feedings);
+
+        // Calculate stats
+        $stats = $this->calculateStats($branchId);
+
+        // Get active fish batches for form
+        $fishBatches = $this->getActiveFishBatches($branchId);
+
+        // Pagination info
+        $pagination = [
+            'current_page' => $page,
+            'total_pages' => ceil($totalFeedings / self::ITEMS_PER_PAGE),
+            'total_items' => $totalFeedings,
+            'per_page' => self::ITEMS_PER_PAGE,
+            'has_prev' => $page > 1,
+            'has_next' => $page < ceil($totalFeedings / self::ITEMS_PER_PAGE),
+            'prev_page' => $page > 1 ? $page - 1 : null,
+            'next_page' => $page < ceil($totalFeedings / self::ITEMS_PER_PAGE) ? $page + 1 : null
+        ];
+
+        return view('user.feedings.index', compact(
+            'feedings',
+            'branchInfo',
+            'stats',
+            'fishBatches',
+            'pagination'
+        ));
+    }
+
+    private function getFeedingsQuery($branchId)
+    {
+        return DB::table('feedings as f')
             ->join('fish_batches as fb', 'f.fish_batch_id', '=', 'fb.id')
             ->join('ponds as p', 'fb.pond_id', '=', 'p.id')
             ->join('fish_types as ft', 'fb.fish_type_id', '=', 'ft.id')
@@ -43,43 +95,101 @@ class FeedingController extends Controller
                 'f.notes',
                 'f.created_at',
                 'fb.id as batch_id',
+                'fb.date_start as batch_date_start',
+                'fb.documentation_file as batch_image',
                 'p.name as pond_name',
                 'p.code as pond_code',
                 'ft.name as fish_type_name',
                 'u.full_name as created_by_name'
             )
             ->orderBy('f.date', 'desc')
-            ->get();
+            ->orderBy('f.created_at', 'desc');
+    }
 
-        // Calculate additional info for each feeding
+    private function processFeedingsData($feedings)
+    {
         foreach ($feedings as $feeding) {
-            // Get current stock for the batch
-            $batch = DB::table('fish_batches')->where('id', $feeding->batch_id)->first();
-            
+            // Add image URLs
+            $feeding->batch_image_url = $feeding->batch_image
+                ? Storage::url($feeding->batch_image)
+                : null;
+
             // Calculate batch age at feeding date
-            $feeding->batch_age_days = \Carbon\Carbon::parse($batch->date_start)->diffInDays($feeding->date);
+            $feeding->batch_age_days = \Carbon\Carbon::parse($feeding->batch_date_start)
+                ->diffInDays($feeding->date);
+
+            // Format for mobile display
+            $feeding->formatted_date = \Carbon\Carbon::parse($feeding->date)->format('d M');
+            $feeding->formatted_amount = number_format($feeding->feed_amount_kg, 1);
+            $feeding->short_notes = $feeding->notes ? \Str::limit($feeding->notes, 20) : null;
         }
+    }
 
-        // Summary stats
-        $stats = [
-            'total_feedings' => $feedings->count(),
-            'total_feed_kg' => $feedings->sum('feed_amount_kg'),
-            'avg_feed_per_day' => $feedings->groupBy('date')->avg(function ($group) {
-                return $group->sum('feed_amount_kg');
-            }) ?: 0,
-            'active_batches' => $feedings->unique('batch_id')->count()
+    private function calculateStats($branchId)
+    {
+        $statsQuery = DB::table('feedings as f')
+            ->join('fish_batches as fb', 'f.fish_batch_id', '=', 'fb.id')
+            ->join('ponds as p', 'fb.pond_id', '=', 'p.id')
+            ->where('p.branch_id', $branchId)
+            ->whereNull('f.deleted_at')
+            ->whereNull('fb.deleted_at');
+
+        $totalFeedings = $statsQuery->count();
+        $totalFeedKg = $statsQuery->sum('f.feed_amount_kg');
+        $activeBatches = $statsQuery->distinct('fb.id')->count();
+
+        // Calculate average per day for last 30 days
+        $avgFeedPerDay = DB::table('feedings as f')
+            ->join('fish_batches as fb', 'f.fish_batch_id', '=', 'fb.id')
+            ->join('ponds as p', 'fb.pond_id', '=', 'p.id')
+            ->where('p.branch_id', $branchId)
+            ->where('f.date', '>=', now()->subDays(30))
+            ->whereNull('f.deleted_at')
+            ->whereNull('fb.deleted_at')
+            ->selectRaw('DATE(f.date) as feed_date, SUM(f.feed_amount_kg) as daily_total')
+            ->groupBy('feed_date')
+            ->get()
+            ->avg('daily_total') ?: 0;
+
+        return [
+            'total_feedings' => $totalFeedings,
+            'total_feed_kg' => $totalFeedKg,
+            'avg_feed_per_day' => $avgFeedPerDay,
+            'active_batches' => $activeBatches
         ];
+    }
 
-        // Get dropdown data for form
+    private function getActiveFishBatches($branchId)
+    {
         $fishBatches = DB::table('fish_batches as fb')
             ->join('ponds as p', 'fb.pond_id', '=', 'p.id')
             ->join('fish_types as ft', 'fb.fish_type_id', '=', 'ft.id')
             ->where('p.branch_id', $branchId)
             ->whereNull('fb.deleted_at')
-            ->select('fb.id', 'p.name as pond_name', 'ft.name as fish_type_name')
+            ->select(
+                'fb.id',
+                'fb.date_start',
+                'fb.initial_count',
+                'fb.documentation_file',
+                'p.name as pond_name',
+                'p.code as pond_code',
+                'ft.name as fish_type_name'
+            )
+            ->orderBy('fb.created_at', 'desc')
             ->get();
 
-        return view('user.feedings.index', compact('feedings', 'branchInfo', 'stats', 'fishBatches'));
+        // Process batch data
+        foreach ($fishBatches as $batch) {
+            $batch->image_url = $batch->documentation_file
+                ? Storage::url($batch->documentation_file)
+                : null;
+
+            $batch->current_stock = $this->calculateCurrentStock($batch->id);
+            $batch->age_days = \Carbon\Carbon::parse($batch->date_start)->diffInDays(now());
+            $batch->is_active = $batch->current_stock > 0;
+        }
+
+        return $fishBatches->where('is_active', true)->values();
     }
 
     public function store(Request $request)
@@ -93,16 +203,22 @@ class FeedingController extends Controller
         ]);
 
         try {
-            // Verify batch belongs to current branch
-            $batch = DB::table('fish_batches as fb')
-                ->join('ponds as p', 'fb.pond_id', '=', 'p.id')
-                ->where('fb.id', $request->fish_batch_id)
-                ->where('p.branch_id', $this->getCurrentBranchId())
-                ->whereNull('fb.deleted_at')
-                ->first();
-
+            // Verify batch belongs to current branch and is active
+            $batch = $this->validateBatch($request->fish_batch_id);
             if (!$batch) {
-                return response()->json(['success' => false, 'message' => 'Batch ikan tidak valid'], 400);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Batch ikan tidak valid'
+                ], 400);
+            }
+
+            // Check if batch has stock
+            $currentStock = $this->calculateCurrentStock($batch->id);
+            if ($currentStock <= 0) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Batch tidak memiliki stok ikan'
+                ], 400);
             }
 
             DB::table('feedings')->insert([
@@ -121,6 +237,7 @@ class FeedingController extends Controller
                 'message' => 'Data pemberian pakan berhasil ditambahkan!'
             ]);
         } catch (\Exception $e) {
+            \Log::error('Feeding store error: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Gagal menambahkan data pemberian pakan. Silakan coba lagi.'
@@ -130,17 +247,13 @@ class FeedingController extends Controller
 
     public function show($id)
     {
-        $feeding = DB::table('feedings as f')
-            ->join('fish_batches as fb', 'f.fish_batch_id', '=', 'fb.id')
-            ->join('ponds as p', 'fb.pond_id', '=', 'p.id')
-            ->where('f.id', $id)
-            ->where('p.branch_id', $this->getCurrentBranchId())
-            ->whereNull('f.deleted_at')
-            ->select('f.*')
-            ->first();
+        $feeding = $this->findFeeding($id);
 
         if (!$feeding) {
-            return response()->json(['success' => false, 'message' => 'Data tidak ditemukan'], 404);
+            return response()->json([
+                'success' => false,
+                'message' => 'Data tidak ditemukan'
+            ], 404);
         }
 
         return response()->json(['success' => true, 'data' => $feeding]);
@@ -157,29 +270,22 @@ class FeedingController extends Controller
         ]);
 
         try {
-            // Verify feeding belongs to current branch
-            $feeding = DB::table('feedings as f')
-                ->join('fish_batches as fb', 'f.fish_batch_id', '=', 'fb.id')
-                ->join('ponds as p', 'fb.pond_id', '=', 'p.id')
-                ->where('f.id', $id)
-                ->where('p.branch_id', $this->getCurrentBranchId())
-                ->whereNull('f.deleted_at')
-                ->first();
-
+            // Verify feeding exists
+            $feeding = $this->findFeeding($id);
             if (!$feeding) {
-                return response()->json(['success' => false, 'message' => 'Data tidak ditemukan'], 404);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Data tidak ditemukan'
+                ], 404);
             }
 
-            // Verify new batch belongs to current branch
-            $batch = DB::table('fish_batches as fb')
-                ->join('ponds as p', 'fb.pond_id', '=', 'p.id')
-                ->where('fb.id', $request->fish_batch_id)
-                ->where('p.branch_id', $this->getCurrentBranchId())
-                ->whereNull('fb.deleted_at')
-                ->first();
-
+            // Verify new batch
+            $batch = $this->validateBatch($request->fish_batch_id);
             if (!$batch) {
-                return response()->json(['success' => false, 'message' => 'Batch ikan tidak valid'], 400);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Batch ikan tidak valid'
+                ], 400);
             }
 
             DB::table('feedings')
@@ -198,6 +304,7 @@ class FeedingController extends Controller
                 'message' => 'Data pemberian pakan berhasil diperbarui!'
             ]);
         } catch (\Exception $e) {
+            \Log::error('Feeding update error: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Gagal memperbarui data pemberian pakan. Silakan coba lagi.'
@@ -208,20 +315,14 @@ class FeedingController extends Controller
     public function destroy($id)
     {
         try {
-            // Verify feeding belongs to current branch
-            $feeding = DB::table('feedings as f')
-                ->join('fish_batches as fb', 'f.fish_batch_id', '=', 'fb.id')
-                ->join('ponds as p', 'fb.pond_id', '=', 'p.id')
-                ->where('f.id', $id)
-                ->where('p.branch_id', $this->getCurrentBranchId())
-                ->whereNull('f.deleted_at')
-                ->first();
-
+            $feeding = $this->findFeeding($id);
             if (!$feeding) {
-                return response()->json(['success' => false, 'message' => 'Data tidak ditemukan'], 404);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Data tidak ditemukan'
+                ], 404);
             }
 
-            // Soft delete
             DB::table('feedings')
                 ->where('id', $id)
                 ->update([
@@ -234,10 +335,62 @@ class FeedingController extends Controller
                 'message' => 'Data pemberian pakan berhasil dihapus!'
             ]);
         } catch (\Exception $e) {
+            \Log::error('Feeding delete error: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Gagal menghapus data pemberian pakan. Silakan coba lagi.'
             ], 500);
         }
+    }
+
+    private function findFeeding($id)
+    {
+        return DB::table('feedings as f')
+            ->join('fish_batches as fb', 'f.fish_batch_id', '=', 'fb.id')
+            ->join('ponds as p', 'fb.pond_id', '=', 'p.id')
+            ->where('f.id', $id)
+            ->where('p.branch_id', $this->getCurrentBranchId())
+            ->whereNull('f.deleted_at')
+            ->select('f.*')
+            ->first();
+    }
+
+    private function validateBatch($batchId)
+    {
+        return DB::table('fish_batches as fb')
+            ->join('ponds as p', 'fb.pond_id', '=', 'p.id')
+            ->where('fb.id', $batchId)
+            ->where('p.branch_id', $this->getCurrentBranchId())
+            ->whereNull('fb.deleted_at')
+            ->select('fb.*')
+            ->first();
+    }
+
+    private function calculateCurrentStock($batchId)
+    {
+        $batch = DB::table('fish_batches')->where('id', $batchId)->first();
+        if (!$batch) return 0;
+
+        $sold = DB::table('sales')
+            ->where('fish_batch_id', $batchId)
+            ->whereNull('deleted_at')
+            ->sum('quantity_fish');
+
+        $mortality = DB::table('mortalities')
+            ->where('fish_batch_id', $batchId)
+            ->whereNull('deleted_at')
+            ->sum('dead_count');
+
+        $transferredOut = DB::table('fish_batch_transfers')
+            ->where('source_batch_id', $batchId)
+            ->whereNull('deleted_at')
+            ->sum('transferred_count');
+
+        $transferredIn = DB::table('fish_batch_transfers')
+            ->where('target_batch_id', $batchId)
+            ->whereNull('deleted_at')
+            ->sum('transferred_count');
+
+        return $batch->initial_count + $transferredIn - $sold - $mortality - $transferredOut;
     }
 }

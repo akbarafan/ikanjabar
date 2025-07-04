@@ -20,7 +20,7 @@
 
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
             <div class="flex items-center">
-                <div class="p-3 rounded-full bg-green-100">
+                <div class="p-3 rounded-full " style="background-color: #dcfce7;">
                     <i class="fas fa-layer-group text-green-600 text-xl"></i>
                 </div>
                 <div class="ml-4">
@@ -81,7 +81,8 @@
                             </div>
                         </td>
                         <td class="px-6 py-4">
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $fishType->current_stock > 0 ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800' }}">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium" 
+                            style="{{ $fishType->current_stock > 0 ? 'background-color: #dcfce7; color: #15803d;' : 'background-color: #f3f4f6; color: #374151;' }}">
                                 {{ number_format($fishType->current_stock) }} ekor
                             </span>
                         </td>

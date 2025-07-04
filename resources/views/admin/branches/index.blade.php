@@ -1,376 +1,579 @@
 @extends('admin.layouts.app')
 
-@section('title', 'Daftar Cabang')
+@section('title', 'Manajemen Cabang')
 @section('page-title', 'Manajemen Cabang')
 
 @section('content')
-<!-- Stats Cards -->
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-    <div class="bg-white rounded-lg shadow-md p-6">
-        <div class="flex items-center justify-between">
-            <div>
-                <p class="text-sm text-gray-500 mb-1">Total Cabang</p>
-                <h3 class="text-2xl font-bold text-gray-800">{{ $branches->total() }}</h3>
-            </div>
-            <div class="bg-blue-100 p-3 rounded-full">
-                <i class="fas fa-building text-blue-600"></i>
+<div class="space-y-6">
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-blue-100">
+                    <i class="fas fa-building text-blue-600 text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Total Cabang</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ $stats['total_branches'] }}</p>
+                </div>
             </div>
         </div>
-        <div class="mt-4 text-sm text-gray-600">
-            <span class="text-green-500"><i class="fas fa-arrow-up"></i> {{ $branches->total() }}</span> cabang terdaftar
+
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-green-100">
+                    <i class="fas fa-users text-green-600 text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Total Pengguna</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ $stats['total_users'] }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-purple-100">
+                    <i class="fas fa-swimming-pool text-purple-600 text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Total Kolam</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ $stats['total_ponds'] }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-orange-100">
+                    <i class="fas fa-check-circle text-orange-600 text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Cabang Aktif</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ $stats['active_branches'] }}</p>
+                </div>
+            </div>
         </div>
     </div>
 
-    <div class="bg-white rounded-lg shadow-md p-6">
-        <div class="flex items-center justify-between">
-            <div>
-                <p class="text-sm text-gray-500 mb-1">Total Kolam</p>
-                <h3 class="text-2xl font-bold text-gray-800">{{ $branches->sum('ponds_count') }}</h3>
-            </div>
-            <div class="bg-green-100 p-3 rounded-full">
-                <i class="fas fa-swimming-pool text-green-600"></i>
+    <!-- Branches Table -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100">
+        <div class="p-6 border-b border-gray-200">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-900">Daftar Cabang</h3>
+                    <p class="text-sm text-gray-600 mt-1">Kelola semua cabang perusahaan</p>
+                </div>
+                <button onclick="openAddModal()" class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
+                    <i class="fas fa-plus mr-2"></i>
+                    Tambah Cabang
+                </button>
             </div>
         </div>
-        <div class="mt-4 text-sm text-gray-600">
-            <span class="text-green-500"><i class="fas fa-arrow-up"></i> {{ $branches->sum('ponds_count') }}</span> kolam aktif
-        </div>
-    </div>
 
-    <div class="bg-white rounded-lg shadow-md p-6">
-        <div class="flex items-center justify-between">
-            <div>
-                <p class="text-sm text-gray-500 mb-1">Total Pengguna</p>
-                <h3 class="text-2xl font-bold text-gray-800">{{ $branches->sum('users_count') }}</h3>
-            </div>
-            <div class="bg-purple-100 p-3 rounded-full">
-                <i class="fas fa-users text-purple-600"></i>
-            </div>
-        </div>
-        <div class="mt-4 text-sm text-gray-600">
-            <span class="text-green-500"><i class="fas fa-arrow-up"></i> {{ $branches->sum('users_count') }}</span> pengguna aktif
-        </div>
-    </div>
-
-    <div class="bg-white rounded-lg shadow-md p-6">
-        <div class="flex items-center justify-between">
-            <div>
-                <p class="text-sm text-gray-500 mb-1">Batch Aktif</p>
-                <h3 class="text-2xl font-bold text-gray-800">{{ $branches->sum(function($branch) { return $branch->statistics['total_active_batches'] ?? 0; }) }}</h3>
-            </div>
-            <div class="bg-green-100 p-3 rounded-full">
-                <i class="fas fa-fish text-green-600"></i>
-            </div>
-        </div>
-        <div class="mt-4 text-sm text-gray-600">
-            <span class="text-green-500"><i class="fas fa-arrow-up"></i> {{ $branches->sum(function($branch) { return $branch->statistics['total_active_batches'] ?? 0; }) }}</span> batch aktif
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cabang</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Lokasi</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kontak</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statistik</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dibuat</th>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    @forelse($branches as $branch)
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="px-6 py-4">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 h-10 w-10">
+                                    <div class="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                                        <i class="fas fa-building text-blue-600"></i>
+                                    </div>
+                                </div>
+                                <div class="ml-4">
+                                    <div class="text-sm font-medium text-gray-900">{{ $branch->name }}</div>
+                                    <div class="text-sm text-gray-500">PIC: {{ $branch->pic_name }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="text-sm text-gray-900">{{ Str::limit($branch->location, 50) }}</div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="text-sm text-gray-900">{{ $branch->contact_person }}</div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="flex space-x-4 text-sm">
+                                <div class="flex items-center text-gray-500">
+                                    <i class="fas fa-users mr-1"></i>
+                                    {{ $branch->users_count }}
+                                </div>
+                                <div class="flex items-center text-gray-500">
+                                    <i class="fas fa-swimming-pool mr-1"></i>
+                                    {{ $branch->ponds_count }}
+                                </div>
+                                <div class="flex items-center text-gray-500">
+                                    <i class="fas fa-fish mr-1"></i>
+                                    {{ $branch->fish_types_count }}
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-500">
+                            {{ $branch->created_at->format('d M Y') }}
+                        </td>
+                        <td class="px-6 py-4 text-right text-sm font-medium">
+                            <div class="flex items-center justify-end space-x-2">
+                                <button onclick="viewBranch({{ $branch->id }})" class="text-green-600 hover:text-green-900 p-1" title="Lihat Detail">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button onclick="editBranch({{ $branch->id }})" class="text-blue-600 hover:text-blue-900 p-1" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button onclick="deleteBranch({{ $branch->id }}, '{{ $branch->name }}')" class="text-red-600 hover:text-red-900 p-1" title="Hapus">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="6" class="px-6 py-12 text-center">
+                            <div class="flex flex-col items-center">
+                                <i class="fas fa-building text-gray-300 text-4xl mb-4"></i>
+                                <h3 class="text-lg font-medium text-gray-900 mb-2">Belum ada cabang</h3>
+                                <p class="text-gray-500 mb-4">Mulai dengan menambahkan cabang pertama untuk perusahaan Anda.</p>
+                                <button onclick="openAddModal()" class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
+                                    <i class="fas fa-plus mr-2"></i>
+                                    Tambah Cabang
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
 
-<!-- Branches List -->
-<div class="bg-white rounded-lg shadow-md p-6 mb-6">
-    <div class="flex justify-between items-center mb-6">
-        <h3 class="text-lg font-semibold text-gray-800">Daftar Cabang</h3>
-        <a href="{{ route('admin.branches.create') }}" class="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors">
-            <i class="fas fa-plus mr-2"></i> Tambah Cabang
-        </a>
-    </div>
+<!-- Add/Edit Modal -->
+<div id="branchModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 hidden">
+    <div class="relative top-20 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-lg bg-white">
+        <div class="mt-3">
+            <div class="flex items-center justify-between mb-4">
+                <h3 id="modalTitle" class="text-lg font-medium text-gray-900">Tambah Cabang</h3>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
 
-    <!-- Search Form -->
-    <div class="mb-6">
-        <form id="searchForm" class="flex flex-col sm:flex-row gap-4">
-            @csrf
-            <div class="flex-1">
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <i class="fas fa-search text-gray-400"></i>
+            <form id="branchForm" class="space-y-4">
+                <input type="hidden" id="branchId" name="id">
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Nama Cabang *</label>
+                        <input type="text" id="name" name="name" required
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                               placeholder="Contoh: Jakarta Pusat">
+                        <div id="nameError" class="text-red-500 text-sm mt-1 hidden"></div>
                     </div>
-                    <input type="text" 
-                           id="searchInput"
-                           name="search" 
-                           value="{{ $searchTerm ?? '' }}" 
-                           placeholder="Cari nama cabang..." 
-                           class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                </div>
-            </div>
-            <div class="flex gap-2">
-                <button type="submit" id="searchBtn" class="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors">
-                    <i class="fas fa-search mr-2"></i> <span>Cari</span>
-                </button>
-                <button type="button" id="resetBtn" class="bg-gray-500 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-600 transition-colors" style="display: none;">
-                    <i class="fas fa-times mr-2"></i> Reset
-                </button>
-            </div>
-        </form>
-    </div>
 
-    @if(session('success'))
-        <div class="mb-4 p-4 bg-green-50 border-l-4 border-green-400">
-            <div class="flex">
-                <div class="flex-shrink-0">
-                    <i class="fas fa-check-circle text-green-400"></i>
+                    <div>
+                        <label for="pic_name" class="block text-sm font-medium text-gray-700 mb-1">Nama PIC *</label>
+                        <input type="text" id="pic_name" name="pic_name" required
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                               placeholder="Contoh: John Doe">
+                        <div id="picNameError" class="text-red-500 text-sm mt-1 hidden"></div>
+                    </div>
                 </div>
-                <div class="ml-3">
-                    <p class="text-sm text-green-700">{{ session('success') }}</p>
+
+                <div>
+                    <label for="contact_person" class="block text-sm font-medium text-gray-700 mb-1">Kontak Person *</label>
+                    <input type="text" id="contact_person" name="contact_person" required
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                           placeholder="Contoh: +62 812-3456-7890 atau email@example.com">
+                    <div id="contactPersonError" class="text-red-500 text-sm mt-1 hidden"></div>
                 </div>
-            </div>
+
+                <div>
+                    <label for="location" class="block text-sm font-medium text-gray-700 mb-1">Alamat Lengkap *</label>
+                    <textarea id="location" name="location" rows="3" required
+                              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                              placeholder="Masukkan alamat lengkap cabang..."></textarea>
+                    <div id="locationError" class="text-red-500 text-sm mt-1 hidden"></div>
+                </div>
+
+                <div class="flex items-center justify-end space-x-3 pt-4">
+                    <button type="button" onclick="closeModal()"
+                            class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
+                        Batal
+                    </button>
+                    <button type="submit" id="submitBtn"
+                            class="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors">
+                        <span id="submitText">Simpan</span>
+                        <i id="submitLoader" class="fas fa-spinner fa-spin ml-2 hidden"></i>
+                    </button>
+                </div>
+            </form>
         </div>
-    @endif
-
-    @if(session('error'))
-        <div class="mb-4 p-4 bg-red-50 border-l-4 border-red-400">
-            <div class="flex">
-                <div class="flex-shrink-0">
-                    <i class="fas fa-exclamation-circle text-red-400"></i>
-                </div>
-                <div class="ml-3">
-                    <p class="text-sm text-red-700">{{ session('error') }}</p>
-                </div>
-            </div>
-        </div>
-    @endif
-
-    <!-- Search Results Info -->
-    <div id="searchInfo">
-        @include('admin.branches.partials.search-info', [
-            'searchTerm' => $searchTerm ?? null,
-            'total' => $branches->total(),
-            'hasResults' => $branches->count() > 0
-        ])
-    </div>
-
-    <!-- Loading Indicator -->
-    <div id="loadingIndicator" class="hidden mb-4 p-3 bg-blue-50 border-l-4 border-blue-400">
-        <div class="flex items-center">
-            <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
-            <span class="text-sm text-blue-700">Mencari cabang...</span>
-        </div>
-    </div>
-
-    <!-- Table Container -->
-    <div id="tableContainer">
-        @include('admin.branches.partials.table', [
-            'branches' => $branches,
-            'searchTerm' => $searchTerm ?? null
-        ])
-    </div>
-
-    <!-- Pagination Container -->
-    <div id="paginationContainer" class="mt-4">
-        @if($branches->hasPages())
-            {{ $branches->appends(['search' => $searchTerm])->links() }}
-        @endif
     </div>
 </div>
 
-@push('scripts')
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const searchForm = document.getElementById('searchForm');
-    const searchInput = document.getElementById('searchInput');
-    const searchBtn = document.getElementById('searchBtn');
-    const resetBtn = document.getElementById('resetBtn');
-    const loadingIndicator = document.getElementById('loadingIndicator');
-    const searchInfo = document.getElementById('searchInfo');
-    const tableContainer = document.getElementById('tableContainer');
-    const paginationContainer = document.getElementById('paginationContainer');
-
-    // Show/hide reset button based on search input
-    function toggleResetButton() {
-        if (searchInput.value.trim() !== '') {
-            resetBtn.style.display = 'block';
-        } else {
-            resetBtn.style.display = 'none';
-        }
-    }
-
-    // Initial check
-    toggleResetButton();
-
-    // Listen for input changes
-    searchInput.addEventListener('input', function() {
-        toggleResetButton();
-    });
-
-    // Handle search form submission
-    searchForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        performSearch();
-    });
-
-    // Handle reset button click
-    resetBtn.addEventListener('click', function() {
-        resetSearch();
-    });
-
-    // Real-time search with debounce
-    let searchTimeout;
-       searchInput.addEventListener('input', function() {
-        clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(function() {
-            if (searchInput.value.trim() !== '') {
-                performSearch();
-            }
-        }, 500); // 500ms delay
-    });
-
-    // Perform search function
-    function performSearch() {
-        const searchTerm = searchInput.value.trim();
-        
-        // Show loading indicator
-        loadingIndicator.classList.remove('hidden');
-        searchBtn.disabled = true;
-        searchBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> <span>Mencari...</span>';
-
-        // Prepare form data
-        const formData = new FormData();
-        formData.append('_token', document.querySelector('input[name="_token"]').value);
-        formData.append('search', searchTerm);
-
-        // Make AJAX request
-        fetch('{{ route("admin.branches.search") }}', {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Update search info
-                searchInfo.innerHTML = data.search_info;
-                
-                // Update table
-                tableContainer.innerHTML = data.html;
-                
-                // Update pagination
-                paginationContainer.innerHTML = data.pagination;
-                
-                // Update URL without page reload
-                const url = new URL(window.location);
-                if (searchTerm) {
-                    url.searchParams.set('search', searchTerm);
-                } else {
-                    url.searchParams.delete('search');
-                }
-                window.history.pushState({}, '', url);
-            }
-        })
-        .catch(error => {
-            console.error('Search error:', error);
-            showErrorMessage('Terjadi kesalahan saat mencari data. Silakan coba lagi.');
-        })
-        .finally(() => {
-            // Hide loading indicator
-            loadingIndicator.classList.add('hidden');
-            searchBtn.disabled = false;
-            searchBtn.innerHTML = '<i class="fas fa-search mr-2"></i> <span>Cari</span>';
-        });
-    }
-
-    // Reset search function
-    function resetSearch() {
-        searchInput.value = '';
-        toggleResetButton();
-        performSearch();
-    }
-
-    // Global reset function for use in partials
-    window.resetSearch = resetSearch;
-
-    // Handle pagination clicks
-    document.addEventListener('click', function(e) {
-        if (e.target.closest('.pagination a')) {
-            e.preventDefault();
-            const url = e.target.closest('.pagination a').href;
-            const urlParams = new URLSearchParams(url.split('?')[1]);
-            const page = urlParams.get('page');
-            const currentSearch = searchInput.value.trim();
-            
-            loadPage(page, currentSearch);
-        }
-    });
-
-    // Load specific page
-    function loadPage(page, searchTerm = '') {
-        loadingIndicator.classList.remove('hidden');
-        
-        const formData = new FormData();
-        formData.append('_token', document.querySelector('input[name="_token"]').value);
-        formData.append('search', searchTerm);
-        formData.append('page', page);
-
-        fetch('{{ route("admin.branches.search") }}', {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                searchInfo.innerHTML = data.search_info;
-                tableContainer.innerHTML = data.html;
-                paginationContainer.innerHTML = data.pagination;
-                
-                // Update URL
-                const url = new URL(window.location);
-                if (searchTerm) {
-                    url.searchParams.set('search', searchTerm);
-                } else {
-                    url.searchParams.delete('search');
-                }
-                url.searchParams.set('page', page);
-                window.history.pushState({}, '', url);
-                
-                // Scroll to top of table
-                tableContainer.scrollIntoView({ behavior: 'smooth' });
-            }
-        })
-        .catch(error => {
-            console.error('Pagination error:', error);
-            showErrorMessage('Terjadi kesalahan saat memuat halaman. Silakan coba lagi.');
-        })
-        .finally(() => {
-            loadingIndicator.classList.add('hidden');
-        });
-    }
-
-    // Show error message
-    function showErrorMessage(message) {
-        const errorDiv = document.createElement('div');
-        errorDiv.className = 'mb-4 p-4 bg-red-50 border-l-4 border-red-400';
-        errorDiv.innerHTML = `
-            <div class="flex">
-                <div class="flex-shrink-0">
-                    <i class="fas fa-exclamation-circle text-red-400"></i>
-                </div>
-                <div class="ml-3">
-                    <p class="text-sm text-red-700">${message}</p>
-                </div>
+<!-- View Modal -->
+<div id="viewModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 hidden">
+    <div class="relative top-20 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-lg bg-white">
+        <div class="mt-3">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-medium text-gray-900">Detail Cabang</h3>
+                <button onclick="closeViewModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
-        `;
-        
-        searchInfo.insertAdjacentElement('afterend', errorDiv);
-        
-        // Remove error message after 5 seconds
-        setTimeout(() => {
-            errorDiv.remove();
-        }, 5000);
+
+            <div id="viewContent" class="space-y-4">
+                <!-- Content will be loaded here -->
+            </div>
+
+            <div class="flex items-center justify-end space-x-3 pt-4">
+                <button onclick="closeViewModal()"
+                        class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
+                    Tutup
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 hidden">
+    <div class="relative top-20 mx-auto p-5 border w-full max-w-md shadow-lg rounded-lg bg-white">
+        <div class="mt-3 text-center">
+            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
+                <i class="fas fa-exclamation-triangle text-red-600"></i>
+            </div>
+            <h3 class="text-lg font-medium text-gray-900 mb-2">Hapus Cabang</h3>
+            <p class="text-sm text-gray-500 mb-4">
+                Apakah Anda yakin ingin menghapus cabang <strong id="deleteBranchName"></strong>?
+                Tindakan ini tidak dapat dibatalkan dan akan menghapus semua data terkait.
+            </p>
+            <div class="flex items-center justify-center space-x-3">
+                <button onclick="closeDeleteModal()"
+                        class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
+                    Batal
+                </button>
+                <button onclick="confirmDelete()" id="deleteBtn"
+                        class="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors">
+                    <span id="deleteText">Hapus</span>
+                    <i id="deleteLoader" class="fas fa-spinner fa-spin ml-2 hidden"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentBranchId = null;
+let deleteId = null;
+
+// Modal functions
+function openAddModal() {
+    document.getElementById('modalTitle').textContent = 'Tambah Cabang';
+    document.getElementById('submitText').textContent = 'Simpan';
+    document.getElementById('branchForm').reset();
+    document.getElementById('branchId').value = '';
+    currentBranchId = null;
+    clearErrors();
+    document.getElementById('branchModal').classList.remove('hidden');
+    document.getElementById('name').focus();
+}
+
+function closeModal() {
+    document.getElementById('branchModal').classList.add('hidden');
+    clearErrors();
+}
+
+function closeViewModal() {
+    document.getElementById('viewModal').classList.add('hidden');
+}
+
+function closeDeleteModal() {
+    document.getElementById('deleteModal').classList.add('hidden');
+    deleteId = null;
+}
+
+function clearErrors() {
+    const errorElements = ['nameError', 'picNameError', 'contactPersonError', 'locationError'];
+    errorElements.forEach(id => {
+        document.getElementById(id).classList.add('hidden');
+    });
+}
+
+// CRUD functions
+function viewBranch(id) {
+    fetch(`/admin/branches/${id}`)
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                const branch = result.data;
+                const content = `
+                    <div class="bg-gray-50 rounded-lg p-4 space-y-3">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Nama Cabang</label>
+                                <p class="mt-1 text-sm text-gray-900">${branch.name}</p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Nama PIC</label>
+                                <p class="mt-1 text-sm text-gray-900">${branch.pic_name}</p>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Kontak Person</label>
+                            <p class="mt-1 text-sm text-gray-900">${branch.contact_person}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Alamat Lengkap</label>
+                            <p class="mt-1 text-sm text-gray-900">${branch.location}</p>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Dibuat</label>
+                                <p class="mt-1 text-sm text-gray-900">${new Date(branch.created_at).toLocaleDateString('id-ID')}</p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Terakhir Diperbarui</label>
+                                <p class="mt-1 text-sm text-gray-900">${new Date(branch.updated_at).toLocaleDateString('id-ID')}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                document.getElementById('viewContent').innerHTML = content;
+                document.getElementById('viewModal').classList.remove('hidden');
+            } else {
+                showNotification('Error: ' + result.message, 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Gagal memuat data cabang', 'error');
+        });
+}
+
+function editBranch(id) {
+    currentBranchId = id;
+    document.getElementById('modalTitle').textContent = 'Edit Cabang';
+    document.getElementById('submitText').textContent = 'Perbarui';
+
+    // Show loading state
+    document.getElementById('branchModal').classList.remove('hidden');
+
+    fetch(`/admin/branches/${id}`)
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                document.getElementById('branchId').value = result.data.id;
+                document.getElementById('name').value = result.data.name;
+                document.getElementById('pic_name').value = result.data.pic_name;
+                document.getElementById('contact_person').value = result.data.contact_person;
+                document.getElementById('location').value = result.data.location;
+                document.getElementById('name').focus();
+            } else {
+                showNotification('Error: ' + result.message, 'error');
+                closeModal();
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Gagal memuat data cabang', 'error');
+            closeModal();
+        });
+}
+
+function deleteBranch(id, name) {
+    deleteId = id;
+    document.getElementById('deleteBranchName').textContent = name;
+    document.getElementById('deleteModal').classList.remove('hidden');
+}
+
+function confirmDelete() {
+    if (!deleteId) return;
+
+    const deleteBtn = document.getElementById('deleteBtn');
+    const deleteText = document.getElementById('deleteText');
+    const deleteLoader = document.getElementById('deleteLoader');
+
+    deleteText.textContent = 'Menghapus...';
+    deleteLoader.classList.remove('hidden');
+    deleteBtn.disabled = true;
+
+    fetch(`/admin/branches/${deleteId}`, {
+        method: 'DELETE',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            showNotification(result.message, 'success');
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            showNotification(result.message, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('Gagal menghapus cabang', 'error');
+    })
+    .finally(() => {
+        deleteText.textContent = 'Hapus';
+        deleteLoader.classList.add('hidden');
+        deleteBtn.disabled = false;
+        closeDeleteModal();
+    });
+}
+
+// Form submission
+document.getElementById('branchForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const submitBtn = document.getElementById('submitBtn');
+    const submitText = document.getElementById('submitText');
+    const submitLoader = document.getElementById('submitLoader');
+
+    const formData = new FormData(this);
+    const isEdit = currentBranchId !== null;
+
+    submitText.textContent = isEdit ? 'Memperbarui...' : 'Menyimpan...';
+    submitLoader.classList.remove('hidden');
+    submitBtn.disabled = true;
+    clearErrors();
+
+    const url = isEdit ? `/admin/branches/${currentBranchId}` : '/admin/branches';
+    const method = isEdit ? 'PUT' : 'POST';
+
+    const data = {
+        name: formData.get('name'),
+        pic_name: formData.get('pic_name'),
+        contact_person: formData.get('contact_person'),
+        location: formData.get('location')
+    };
+
+    if (isEdit) {
+        data._method = 'PUT';
     }
 
-    // Handle browser back/forward buttons
-    window.addEventListener('popstate', function(e) {
-        const urlParams = new URLSearchParams(window.location.search);
-        const searchTerm = urlParams.get('search') || '';
-        searchInput.value = searchTerm;
-        toggleResetButton();
-        performSearch();
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            showNotification(result.message, 'success');
+            closeModal();
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            if (result.errors) {
+                // Show validation errors
+                Object.keys(result.errors).forEach(field => {
+                    const errorElement = document.getElementById(field + 'Error');
+                    if (errorElement) {
+                        errorElement.textContent = result.errors[field][0];
+                        errorElement.classList.remove('hidden');
+                    }
+                });
+            }
+            showNotification(result.message, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('Terjadi kesalahan. Silakan coba lagi.', 'error');
+    })
+    .finally(() => {
+        submitText.textContent = isEdit ? 'Perbarui' : 'Simpan';
+        submitLoader.classList.add('hidden');
+        submitBtn.disabled = false;
     });
 });
+
+// Notification function
+function showNotification(message, type = 'info') {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg max-w-sm transform transition-all duration-300 translate-x-full`;
+
+    if (type === 'success') {
+        notification.classList.add('bg-green-500', 'text-white');
+        notification.innerHTML = `<i class="fas fa-check-circle mr-2"></i>${message}`;
+    } else if (type === 'error') {
+        notification.classList.add('bg-red-500', 'text-white');
+        notification.innerHTML = `<i class="fas fa-exclamation-circle mr-2"></i>${message}`;
+    } else {
+        notification.classList.add('bg-blue-500', 'text-white');
+        notification.innerHTML = `<i class="fas fa-info-circle mr-2"></i>${message}`;
+    }
+
+    document.body.appendChild(notification);
+
+    // Animate in
+    setTimeout(() => {
+        notification.classList.remove('translate-x-full');
+    }, 100);
+
+    // Auto remove after 4 seconds
+    setTimeout(() => {
+        notification.classList.add('translate-x-full');
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 300);
+    }, 4000);
+}
+
+// Close modals on escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeModal();
+        closeViewModal();
+        closeDeleteModal();
+    }
+});
+
+// Close modals when clicking outside
+document.getElementById('branchModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeModal();
+    }
+});
+
+document.getElementById('viewModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeViewModal();
+    }
+});
+
+document.getElementById('deleteModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeDeleteModal();
+    }
+});
+
+// Auto-resize textarea
+document.getElementById('location').addEventListener('input', function() {
+    this.style.height = 'auto';
+    this.style.height = this.scrollHeight + 'px';
+});
 </script>
-@endpush
 @endsection

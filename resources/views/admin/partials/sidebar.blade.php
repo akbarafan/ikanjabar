@@ -34,89 +34,22 @@
             <span class="transition-all duration-300">Pengguna</span>
         </a>
 
-        <!-- Monitoring -->
-        {{-- <div class="mt-4">
-            <div class="px-6 py-2">
-                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider animate-fade-in">Monitoring Global</p>
-            </div>
-            <a href="{{ route('admin.ponds.index') }}" class="nav-item flex items-center px-6 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-all duration-300 transform hover:translate-x-2 {{ request()->routeIs('admin.ponds.*') ? 'sidebar-active' : '' }}">
-                <i class="fas fa-swimming-pool mr-3 transition-transform duration-300 hover:rotate-12"></i>
-                <span class="transition-all duration-300">Semua Kolam</span>
-            </a>
-            <a href="{{ route('admin.water-quality.index') }}" class="nav-item flex items-center px-6 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-all duration-300 transform hover:translate-x-2 {{ request()->routeIs('admin.water-quality.*') ? 'sidebar-active' : '' }}">
-                <i class="fas fa-tint mr-3 transition-transform duration-300 hover:bounce"></i>
-                <span class="transition-all duration-300">Kualitas Air</span>
-            </a>
-            <a href="{{ route('admin.fish-growth.index') }}" class="nav-item flex items-center px-6 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-all duration-300 transform hover:translate-x-2 {{ request()->routeIs('admin.fish-growth.*') ? 'sidebar-active' : '' }}">
-                <i class="fas fa-chart-line mr-3 transition-transform duration-300 hover:scale-110"></i>
-                <span class="transition-all duration-300">Pertumbuhan</span>
-            </a>
-            <a href="{{ route('admin.fish-batches.index') }}" class="nav-item flex items-center px-6 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-all duration-300 transform hover:translate-x-2 {{ request()->routeIs('admin.fish-batches.*') ? 'sidebar-active' : '' }}">
-                <i class="fas fa-fish mr-3 transition-transform duration-300 hover:rotate-12"></i>
-                <span class="transition-all duration-300">Batch Ikan</span>
-            </a>
-            <a href="{{ route('admin.feeding.index') }}" class="nav-item flex items-center px-6 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-all duration-300 transform hover:translate-x-2 {{ request()->routeIs('admin.feeding.*') ? 'sidebar-active' : '' }}">
-                <i class="fas fa-utensils mr-3 transition-transform duration-300 hover:scale-110"></i>
-                <span class="transition-all duration-300">Pemberian Pakan</span>
-            </a>
-            <a href="{{ route('admin.mortality.index') }}" class="nav-item flex items-center px-6 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-all duration-300 transform hover:translate-x-2 {{ request()->routeIs('admin.mortality.*') ? 'sidebar-active' : '' }}">
-                <i class="fas fa-skull-crossbones mr-3 transition-transform duration-300 hover:rotate-12"></i>
-                <span class="transition-all duration-300">Mortalitas</span>
-            </a>
-        </div> --}}
 
         <!-- Transaksi -->
         <div class="mt-4">
             <div class="px-6 py-2">
                 <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider animate-fade-in">Transaksi</p>
             </div>
-            <a href="{{ route('admin.sales.index') }}" class="nav-item flex items-center px-6 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-all duration-300 transform hover:translate-x-2 {{ request()->routeIs('admin.sales.*') ? 'sidebar-active' : '' }}">
+            {{-- <a href="{{ route('admin.sales.index') }}" class="nav-item flex items-center px-6 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-all duration-300 transform hover:translate-x-2 {{ request()->routeIs('admin.sales.*') ? 'sidebar-active' : '' }}">
                 <i class="fas fa-shopping-cart mr-3 transition-transform duration-300 hover:scale-110"></i>
                 <span class="transition-all duration-300">Penjualan</span>
-            </a>
+            </a> --}}
             {{-- <a href="{{ route('admin.fish-batches.transfer.form', 1) }}" class="nav-item flex items-center px-6 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-all duration-300 transform hover:translate-x-2">
                 <i class="fas fa-exchange-alt mr-3 transition-transform duration-300 hover:rotate-180"></i>
                 <span class="transition-all duration-300">Transfer Batch</span>
             </a> --}}
         </div>
 
-        <!-- Reports -->
-        {{-- <div class="mt-4">
-            <div class="px-6 py-2">
-                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider animate-fade-in">Laporan</p>
-            </div>
-            <a href="{{ route('admin.reports.production') }}" class="nav-item flex items-center px-6 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-all duration-300 transform hover:translate-x-2 {{ request()->routeIs('admin.reports.production') ? 'sidebar-active' : '' }}">
-                <i class="fas fa-chart-bar mr-3 transition-transform duration-300 hover:scale-110"></i>
-                <span class="transition-all duration-300">Laporan Produksi</span>
-            </a>
-            <a href="{{ route('admin.reports.financial') }}" class="nav-item flex items-center px-6 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-all duration-300 transform hover:translate-x-2 {{ request()->routeIs('admin.reports.financial') ? 'sidebar-active' : '' }}">
-                <i class="fas fa-file-invoice-dollar mr-3 transition-transform duration-300 hover:rotate-12"></i>
-                <span class="transition-all duration-300">Laporan Keuangan</span>
-            </a>
-            <a href="{{ route('admin.reports.water-quality') }}" class="nav-item flex items-center px-6 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-all duration-300 transform hover:translate-x-2 {{ request()->routeIs('admin.reports.water-quality') ? 'sidebar-active' : '' }}">
-                <i class="fas fa-file-export mr-3 transition-transform duration-300 hover:scale-110"></i>
-                <span class="transition-all duration-300">Laporan Kualitas Air</span>
-            </a>
-        </div> --}}
-
-        <!-- Settings -->
-        <div class="mt-4 pb-6">
-            <div class="px-6 py-2">
-                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider animate-fade-in">Pengaturan</p>
-            </div>
-            <a href="{{ route('settings') }}" class="nav-item flex items-center px-6 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-all duration-300 transform hover:translate-x-2 {{ request()->routeIs('settings') ? 'sidebar-active' : '' }}">
-                <i class="fas fa-cog mr-3 transition-transform duration-300 hover:rotate-180"></i>
-                <span class="transition-all duration-300">Pengaturan Admin</span>
-            </a>
-            {{-- <a href="#" class="nav-item flex items-center px-6 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-all duration-300 transform hover:translate-x-2">
-                <i class="fas fa-shield-alt mr-3 transition-transform duration-300 hover:scale-110"></i>
-                <span class="transition-all duration-300">Keamanan</span>
-            </a>
-            <a href="#" class="nav-item flex items-center px-6 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-all duration-300 transform hover:translate-x-2">
-                <i class="fas fa-history mr-3 transition-transform duration-300 hover:rotate-12"></i>
-                <span class="transition-all duration-300">Log Aktivitas</span>
-            </a> --}}
-        </div>
     </nav>
 </div>
 

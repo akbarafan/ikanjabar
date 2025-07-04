@@ -3,20 +3,215 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class MortalityController extends Controller
 {
+    private const ITEMS_PER_PAGE = 10;
+
     private function getCurrentBranchId()
     {
         // Sementara hardcode untuk demo, nanti bisa dari session/auth
-        return 1;
+        return Auth::user()->branch_id;
     }
 
     private function getCurrentUserId()
     {
         // Sementara hardcode untuk demo, nanti bisa dari auth
-        return DB::table('users')->where('branch_id', $this->getCurrentBranchId())->first()->id ?? '550e8400-e29b-41d4-a716-446655440000';
+        return Auth::user()->id;
+    }
+
+    public function index(Request $request)
+    {
+        $branchId = $this->getCurrentBranchId();
+        $page = (int) $request->get('page', 1);
+        $offset = ($page - 1) * self::ITEMS_PER_PAGE;
+
+        // Get branch info
+        $branchInfo = DB::table('branches')->find($branchId);
+
+        // Get total count for pagination
+        $totalMortalities = DB::table('mortalities as m')
+            ->join('fish_batches as fb', 'm.fish_batch_id', '=', 'fb.id')
+            ->join('ponds as p', 'fb.pond_id', '=', 'p.id')
+            ->where('p.branch_id', $branchId)
+            ->whereNull('m.deleted_at')
+            ->whereNull('fb.deleted_at')
+            ->count();
+
+        // Get mortalities with pagination - optimized query
+        $mortalities = $this->getMortalitiesQuery($branchId)
+            ->limit(self::ITEMS_PER_PAGE)
+            ->offset($offset)
+            ->get();
+
+        // Process mortalities data
+        $this->processMortalitiesData($mortalities);
+
+        // Calculate stats
+        $stats = $this->calculateStats($branchId);
+
+        // Get active fish batches for form
+        $fishBatches = $this->getActiveFishBatches($branchId);
+
+        // Pagination info
+        $pagination = [
+            'current_page' => $page,
+            'total_pages' => ceil($totalMortalities / self::ITEMS_PER_PAGE),
+            'total_items' => $totalMortalities,
+            'per_page' => self::ITEMS_PER_PAGE,
+            'has_prev' => $page > 1,
+            'has_next' => $page < ceil($totalMortalities / self::ITEMS_PER_PAGE),
+            'prev_page' => $page > 1 ? $page - 1 : null,
+            'next_page' => $page < ceil($totalMortalities / self::ITEMS_PER_PAGE) ? $page + 1 : null
+        ];
+
+        return view('user.mortalities.index', compact(
+            'mortalities',
+            'branchInfo',
+            'stats',
+            'fishBatches',
+            'pagination'
+        ));
+    }
+
+    private function getMortalitiesQuery($branchId)
+    {
+        return DB::table('mortalities as m')
+            ->join('fish_batches as fb', 'm.fish_batch_id', '=', 'fb.id')
+            ->join('ponds as p', 'fb.pond_id', '=', 'p.id')
+            ->join('fish_types as ft', 'fb.fish_type_id', '=', 'ft.id')
+            ->leftJoin('users as u', 'm.created_by', '=', 'u.id')
+            ->where('p.branch_id', $branchId)
+            ->whereNull('m.deleted_at')
+            ->whereNull('fb.deleted_at')
+            ->select(
+                'm.id',
+                'm.date',
+                'm.dead_count',
+                'm.cause',
+                'm.created_at',
+                'fb.id as batch_id',
+                'fb.date_start as batch_start',
+                'fb.initial_count',
+                'fb.documentation_file as batch_image',
+                'p.name as pond_name',
+                'p.code as pond_code',
+                'ft.name as fish_type_name',
+                'u.full_name as created_by_name'
+            )
+            ->orderBy('m.date', 'desc')
+            ->orderBy('m.created_at', 'desc');
+    }
+
+    private function processMortalitiesData($mortalities)
+    {
+        foreach ($mortalities as $mortality) {
+            // Add image URLs
+            $mortality->batch_image_url = $mortality->batch_image
+                ? Storage::url($mortality->batch_image)
+                : null;
+
+            // Calculate batch age at mortality date
+            $mortality->batch_age_days = \Carbon\Carbon::parse($mortality->batch_start)
+                ->diffInDays($mortality->date);
+
+            // Get stock at the time of mortality (before this mortality event)
+            $stockBeforeMortality = $this->calculateCurrentStock($mortality->batch_id, $mortality->date);
+
+            // Add back this mortality to get stock before this specific mortality
+            $mortality->stock_before_mortality = $stockBeforeMortality + $mortality->dead_count;
+
+            // Current stock after all events
+            $mortality->current_stock = $this->calculateCurrentStock($mortality->batch_id);
+
+            // Calculate mortality rate based on stock before this mortality
+            $mortality->mortality_rate = $mortality->stock_before_mortality > 0 ?
+                round(($mortality->dead_count / $mortality->stock_before_mortality) * 100, 2) : 0;
+
+            // Format for mobile display
+            $mortality->formatted_date = \Carbon\Carbon::parse($mortality->date)->format('d M');
+            $mortality->formatted_dead_count = number_format($mortality->dead_count);
+            $mortality->short_cause = $mortality->cause ? \Str::limit($mortality->cause, 25) : null;
+        }
+    }
+
+    private function calculateStats($branchId)
+    {
+        $statsQuery = DB::table('mortalities as m')
+            ->join('fish_batches as fb', 'm.fish_batch_id', '=', 'fb.id')
+            ->join('ponds as p', 'fb.pond_id', '=', 'p.id')
+            ->where('p.branch_id', $branchId)
+            ->whereNull('m.deleted_at')
+            ->whereNull('fb.deleted_at');
+
+        $totalRecords = $statsQuery->count();
+        $totalDeadFish = $statsQuery->sum('m.dead_count');
+        $affectedBatches = $statsQuery->distinct('fb.id')->count();
+
+        // Calculate average mortality rate for last 30 days
+        $recentMortalities = DB::table('mortalities as m')
+            ->join('fish_batches as fb', 'm.fish_batch_id', '=', 'fb.id')
+            ->join('ponds as p', 'fb.pond_id', '=', 'p.id')
+            ->where('p.branch_id', $branchId)
+            ->where('m.date', '>=', now()->subDays(30))
+            ->whereNull('m.deleted_at')
+            ->whereNull('fb.deleted_at')
+            ->get();
+
+        $avgMortalityRate = 0;
+        if ($recentMortalities->count() > 0) {
+            $totalRate = 0;
+            foreach ($recentMortalities as $mortality) {
+                $stockBefore = $this->calculateCurrentStock($mortality->fish_batch_id, $mortality->date) + $mortality->dead_count;
+                if ($stockBefore > 0) {
+                    $totalRate += ($mortality->dead_count / $stockBefore) * 100;
+                }
+            }
+            $avgMortalityRate = $totalRate / $recentMortalities->count();
+        }
+
+        return [
+            'total_records' => $totalRecords,
+            'total_dead_fish' => $totalDeadFish,
+            'avg_mortality_rate' => $avgMortalityRate,
+            'affected_batches' => $affectedBatches
+        ];
+    }
+
+    private function getActiveFishBatches($branchId)
+    {
+        $fishBatches = DB::table('fish_batches as fb')
+            ->join('ponds as p', 'fb.pond_id', '=', 'p.id')
+            ->join('fish_types as ft', 'fb.fish_type_id', '=', 'ft.id')
+            ->where('p.branch_id', $branchId)
+            ->whereNull('fb.deleted_at')
+            ->select(
+                'fb.id',
+                'fb.date_start',
+                'fb.initial_count',
+                'fb.documentation_file',
+                'p.name as pond_name',
+                'p.code as pond_code',
+                'ft.name as fish_type_name'
+            )
+            ->orderBy('fb.created_at', 'desc')
+            ->get();
+
+        // Process batch data
+        foreach ($fishBatches as $batch) {
+            $batch->image_url = $batch->documentation_file
+                ? Storage::url($batch->documentation_file)
+                : null;
+
+            $batch->current_stock = $this->calculateCurrentStock($batch->id);
+            $batch->age_days = \Carbon\Carbon::parse($batch->date_start)->diffInDays(now());
+            $batch->is_active = $batch->current_stock > 0;
+        }
+
+        return $fishBatches->where('is_active', true)->values();
     }
 
     private function calculateCurrentStock($batchId, $upToDate = null)
@@ -24,7 +219,7 @@ class MortalityController extends Controller
         // Get initial count
         $initialCount = DB::table('fish_batches')->where('id', $batchId)->value('initial_count');
 
-        // Calculate transferred IN (fish moved from other batches to this batch)
+        // Calculate transferred IN
         $transferredInQuery = DB::table('fish_batch_transfers')
             ->where('target_batch_id', $batchId)
             ->whereNull('deleted_at');
@@ -34,7 +229,7 @@ class MortalityController extends Controller
         }
         $transferredIn = $transferredInQuery->sum('transferred_count');
 
-        // Calculate transferred OUT (fish moved from this batch to other batches)
+        // Calculate transferred OUT
         $transferredOutQuery = DB::table('fish_batch_transfers')
             ->where('source_batch_id', $batchId)
             ->whereNull('deleted_at');
@@ -54,7 +249,7 @@ class MortalityController extends Controller
         }
         $sold = $soldQuery->sum('quantity_fish');
 
-        // Calculate mortality (up to the specified date, excluding current record if updating)
+        // Calculate mortality
         $mortalityQuery = DB::table('mortalities')
             ->where('fish_batch_id', $batchId)
             ->whereNull('deleted_at');
@@ -64,102 +259,7 @@ class MortalityController extends Controller
         }
         $mortality = $mortalityQuery->sum('dead_count');
 
-        // Current stock = initial + transferred_in - transferred_out - sold - mortality
         return $initialCount + $transferredIn - $transferredOut - $sold - $mortality;
-    }
-
-    public function index()
-    {
-        $branchId = $this->getCurrentBranchId();
-
-        // Get branch info
-        $branchInfo = DB::table('branches')->find($branchId);
-
-        // Get mortalities with related data - optimized query
-        $mortalities = DB::table('mortalities as m')
-            ->join('fish_batches as fb', 'm.fish_batch_id', '=', 'fb.id')
-            ->join('ponds as p', 'fb.pond_id', '=', 'p.id')
-            ->join('fish_types as ft', 'fb.fish_type_id', '=', 'ft.id')
-            ->leftJoin('users as u', 'm.created_by', '=', 'u.id')
-            ->where('p.branch_id', $branchId)
-            ->whereNull('m.deleted_at')
-            ->whereNull('fb.deleted_at')
-            ->select(
-                'm.id',
-                'm.date',
-                'm.dead_count',
-                'm.cause',
-                'm.created_at',
-                'fb.id as batch_id',
-                'fb.date_start as batch_start',
-                'fb.initial_count',
-                'p.name as pond_name',
-                'p.code as pond_code',
-                'ft.name as fish_type_name',
-                'u.full_name as created_by_name'
-            )
-            ->orderBy('m.date', 'desc')
-            ->get();
-
-        // Calculate additional data for each mortality
-        foreach ($mortalities as $mortality) {
-            // Calculate batch age at mortality date
-            $mortality->batch_age_days = \Carbon\Carbon::parse($mortality->batch_start)->diffInDays($mortality->date);
-
-            // Get stock at the time of mortality (before this mortality event)
-            $stockBeforeMortality = $this->calculateCurrentStock($mortality->batch_id, $mortality->date);
-
-            // Add back this mortality to get stock before this specific mortality
-            $mortality->stock_before_mortality = $stockBeforeMortality + $mortality->dead_count;
-
-            // Current stock after all events
-            $mortality->current_stock = $this->calculateCurrentStock($mortality->batch_id);
-
-            // Calculate mortality rate based on stock before this mortality
-            $mortality->mortality_rate = $mortality->stock_before_mortality > 0 ?
-                round(($mortality->dead_count / $mortality->stock_before_mortality) * 100, 2) : 0;
-
-            // Get transfer data for this batch
-            $transferredIn = DB::table('fish_batch_transfers')
-                ->where('target_batch_id', $mortality->batch_id)
-                ->where('date_transfer', '<=', $mortality->date)
-                ->whereNull('deleted_at')
-                ->sum('transferred_count');
-
-            $transferredOut = DB::table('fish_batch_transfers')
-                ->where('source_batch_id', $mortality->batch_id)
-                ->where('date_transfer', '<=', $mortality->date)
-                ->whereNull('deleted_at')
-                ->sum('transferred_count');
-
-            $mortality->transferred_in = $transferredIn;
-            $mortality->transferred_out = $transferredOut;
-        }
-
-        // Summary stats
-        $stats = [
-            'total_records' => $mortalities->count(),
-            'total_dead_fish' => $mortalities->sum('dead_count'),
-            'avg_mortality_rate' => $mortalities->avg('mortality_rate') ?: 0,
-            'affected_batches' => $mortalities->unique('batch_id')->count()
-        ];
-
-        // Get dropdown data for form - only active batches with stock > 0
-        $fishBatches = DB::table('fish_batches as fb')
-            ->join('ponds as p', 'fb.pond_id', '=', 'p.id')
-            ->join('fish_types as ft', 'fb.fish_type_id', '=', 'ft.id')
-            ->where('p.branch_id', $branchId)
-            ->whereNull('fb.deleted_at')
-            ->select('fb.id', 'p.name as pond_name', 'ft.name as fish_type_name', 'fb.initial_count')
-            ->get();
-
-        // Filter batches with current stock > 0
-        $fishBatches = $fishBatches->filter(function ($batch) {
-            $currentStock = $this->calculateCurrentStock($batch->id);
-            return $currentStock > 0;
-        });
-
-        return view('user.mortalities.index', compact('mortalities', 'branchInfo', 'stats', 'fishBatches'));
     }
 
     public function store(Request $request)
@@ -172,22 +272,21 @@ class MortalityController extends Controller
         ]);
 
         try {
-            // Verify batch belongs to current branch
-            $batch = DB::table('fish_batches as fb')
-                ->join('ponds as p', 'fb.pond_id', '=', 'p.id')
-                ->where('fb.id', $request->fish_batch_id)
-                ->where('p.branch_id', $this->getCurrentBranchId())
-                ->whereNull('fb.deleted_at')
-                ->first();
-
+            // Verify batch belongs to current branch and is active
+            $batch = $this->validateBatch($request->fish_batch_id);
             if (!$batch) {
-                return response()->json(['success' => false, 'message' => 'Batch ikan tidak valid'], 400);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Batch ikan tidak valid'
+                ], 400);
             }
 
             // Check if mortality date is after batch start date
-            $batchStart = DB::table('fish_batches')->where('id', $request->fish_batch_id)->value('date_start');
-            if ($request->date < $batchStart) {
-                return response()->json(['success' => false, 'message' => 'Tanggal mortalitas tidak boleh sebelum tanggal mulai batch'], 400);
+            if ($request->date < $batch->date_start) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tanggal mortalitas tidak boleh sebelum tanggal mulai batch'
+                ], 400);
             }
 
             // Check if there's enough stock at the mortality date
@@ -214,6 +313,7 @@ class MortalityController extends Controller
                 'message' => 'Data mortalitas berhasil ditambahkan!'
             ]);
         } catch (\Exception $e) {
+            \Log::error('Mortality store error: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Gagal menambahkan data mortalitas. Silakan coba lagi.'
@@ -223,17 +323,13 @@ class MortalityController extends Controller
 
     public function show($id)
     {
-        $mortality = DB::table('mortalities as m')
-            ->join('fish_batches as fb', 'm.fish_batch_id', '=', 'fb.id')
-            ->join('ponds as p', 'fb.pond_id', '=', 'p.id')
-            ->where('m.id', $id)
-            ->where('p.branch_id', $this->getCurrentBranchId())
-            ->whereNull('m.deleted_at')
-            ->select('m.*')
-            ->first();
+        $mortality = $this->findMortality($id);
 
         if (!$mortality) {
-            return response()->json(['success' => false, 'message' => 'Data tidak ditemukan'], 404);
+            return response()->json([
+                'success' => false,
+                'message' => 'Data tidak ditemukan'
+            ], 404);
         }
 
         return response()->json(['success' => true, 'data' => $mortality]);
@@ -249,36 +345,30 @@ class MortalityController extends Controller
         ]);
 
         try {
-            // Get existing mortality record
-            $existingMortality = DB::table('mortalities as m')
-                ->join('fish_batches as fb', 'm.fish_batch_id', '=', 'fb.id')
-                ->join('ponds as p', 'fb.pond_id', '=', 'p.id')
-                ->where('m.id', $id)
-                ->where('p.branch_id', $this->getCurrentBranchId())
-                ->whereNull('m.deleted_at')
-                ->select('m.*')
-                ->first();
-
+            // Verify mortality exists
+            $existingMortality = $this->findMortality($id);
             if (!$existingMortality) {
-                return response()->json(['success' => false, 'message' => 'Data tidak ditemukan'], 404);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Data tidak ditemukan'
+                ], 404);
             }
 
-            // Verify new batch belongs to current branch
-            $batch = DB::table('fish_batches as fb')
-                ->join('ponds as p', 'fb.pond_id', '=', 'p.id')
-                ->where('fb.id', $request->fish_batch_id)
-                ->where('p.branch_id', $this->getCurrentBranchId())
-                ->whereNull('fb.deleted_at')
-                ->first();
-
+            // Verify new batch
+            $batch = $this->validateBatch($request->fish_batch_id);
             if (!$batch) {
-                return response()->json(['success' => false, 'message' => 'Batch ikan tidak valid'], 400);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Batch ikan tidak valid'
+                ], 400);
             }
 
             // Check if mortality date is after batch start date
-            $batchStart = DB::table('fish_batches')->where('id', $request->fish_batch_id)->value('date_start');
-            if ($request->date < $batchStart) {
-                return response()->json(['success' => false, 'message' => 'Tanggal mortalitas tidak boleh sebelum tanggal mulai batch'], 400);
+            if ($request->date < $batch->date_start) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tanggal mortalitas tidak boleh sebelum tanggal mulai batch'
+                ], 400);
             }
 
             // Calculate stock at the new date (excluding current mortality record)
@@ -311,6 +401,7 @@ class MortalityController extends Controller
                 'message' => 'Data mortalitas berhasil diperbarui!'
             ]);
         } catch (\Exception $e) {
+            \Log::error('Mortality update error: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Gagal memperbarui data mortalitas. Silakan coba lagi.'
@@ -321,20 +412,14 @@ class MortalityController extends Controller
     public function destroy($id)
     {
         try {
-            // Verify mortality belongs to current branch
-            $mortality = DB::table('mortalities as m')
-                ->join('fish_batches as fb', 'm.fish_batch_id', '=', 'fb.id')
-                ->join('ponds as p', 'fb.pond_id', '=', 'p.id')
-                ->where('m.id', $id)
-                ->where('p.branch_id', $this->getCurrentBranchId())
-                ->whereNull('m.deleted_at')
-                ->first();
-
+            $mortality = $this->findMortality($id);
             if (!$mortality) {
-                return response()->json(['success' => false, 'message' => 'Data tidak ditemukan'], 404);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Data tidak ditemukan'
+                ], 404);
             }
 
-            // Soft delete
             DB::table('mortalities')
                 ->where('id', $id)
                 ->update([
@@ -347,11 +432,35 @@ class MortalityController extends Controller
                 'message' => 'Data mortalitas berhasil dihapus!'
             ]);
         } catch (\Exception $e) {
+            \Log::error('Mortality delete error: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Gagal menghapus data mortalitas. Silakan coba lagi.'
             ], 500);
         }
+    }
+
+    private function findMortality($id)
+    {
+        return DB::table('mortalities as m')
+            ->join('fish_batches as fb', 'm.fish_batch_id', '=', 'fb.id')
+            ->join('ponds as p', 'fb.pond_id', '=', 'p.id')
+            ->where('m.id', $id)
+            ->where('p.branch_id', $this->getCurrentBranchId())
+            ->whereNull('m.deleted_at')
+            ->select('m.*', 'fb.date_start')
+            ->first();
+    }
+
+    private function validateBatch($batchId)
+    {
+        return DB::table('fish_batches as fb')
+            ->join('ponds as p', 'fb.pond_id', '=', 'p.id')
+            ->where('fb.id', $batchId)
+            ->where('p.branch_id', $this->getCurrentBranchId())
+            ->whereNull('fb.deleted_at')
+            ->select('fb.*')
+            ->first();
     }
 
     public function getBatchStock($batchId)

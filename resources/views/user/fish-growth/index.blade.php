@@ -1,87 +1,192 @@
 @extends('user.layouts.app')
 
-@section('page-title', 'Pertumbuhan Ikan')
+@section('page-title', 'Catatan Pertumbuhan Ikan')
 
 @section('content')
-<div class="space-y-6">
-    <!-- Stats Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+<div class="space-y-4 lg:space-y-6">
+    <!-- Stats Cards - Mobile Optimized -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
+        <div class="bg-white rounded-lg lg:rounded-xl shadow-sm border border-gray-100 p-3 lg:p-6">
             <div class="flex items-center">
-                <div class="p-3 rounded-full bg-blue-100">
-                    <i class="fas fa-chart-line text-blue-600 text-xl"></i>
+                <div class="p-2 lg:p-3 rounded-full bg-blue-100">
+                    <i class="fas fa-chart-line text-blue-600 text-sm lg:text-xl"></i>
                 </div>
-                <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-600">Total Record</p>
-                    <p class="text-2xl font-bold text-gray-900">{{ $stats['total_records'] }}</p>
+                <div class="ml-2 lg:ml-4 min-w-0 flex-1">
+                    <p class="text-xs lg:text-sm font-medium text-gray-600 truncate">Total Catatan</p>
+                    <p class="text-lg lg:text-2xl font-bold text-gray-900">{{ $stats['total_records'] }}</p>
                 </div>
             </div>
         </div>
 
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <div class="bg-white rounded-lg lg:rounded-xl shadow-sm border border-gray-100 p-3 lg:p-6">
             <div class="flex items-center">
-                <div class="p-3 rounded-full bg-green-100">
-                    <i class="fas fa-weight text-green-600 text-xl"></i>
+                <div class="p-2 lg:p-3 rounded-full bg-green-100">
+                    <i class="fas fa-weight text-green-600 text-sm lg:text-xl"></i>
                 </div>
-                <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-600">Rata-rata Berat</p>
-                    <p class="text-2xl font-bold text-gray-900">{{ number_format($stats['avg_weight'], 1) }}</p>
-                    <p class="text-xs text-gray-500">Gram</p>
+                <div class="ml-2 lg:ml-4 min-w-0 flex-1">
+                    <p class="text-xs lg:text-sm font-medium text-gray-600 truncate">Rata-rata Berat</p>
+                    <p class="text-lg lg:text-2xl font-bold text-gray-900">{{ number_format($stats['avg_weight'], 1) }}</p>
+                    <p class="text-xs text-gray-500">gram</p>
                 </div>
             </div>
         </div>
 
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <div class="bg-white rounded-lg lg:rounded-xl shadow-sm border border-gray-100 p-3 lg:p-6">
             <div class="flex items-center">
-                <div class="p-3 rounded-full bg-purple-100">
-                    <i class="fas fa-ruler text-purple-600 text-xl"></i>
+                <div class="p-2 lg:p-3 rounded-full bg-orange-100">
+                    <i class="fas fa-ruler text-orange-600 text-sm lg:text-xl"></i>
                 </div>
-                <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-600">Rata-rata Panjang</p>
-                    <p class="text-2xl font-bold text-gray-900">{{ number_format($stats['avg_length'], 1) }}</p>
-                    <p class="text-xs text-gray-500">CM</p>
+                <div class="ml-2 lg:ml-4 min-w-0 flex-1">
+                    <p class="text-xs lg:text-sm font-medium text-gray-600 truncate">Rata-rata Panjang</p>
+                    <p class="text-lg lg:text-2xl font-bold text-gray-900">{{ number_format($stats['avg_length'], 1) }}</p>
+                    <p class="text-xs text-gray-500">cm</p>
                 </div>
             </div>
         </div>
 
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <div class="bg-white rounded-lg lg:rounded-xl shadow-sm border border-gray-100 p-3 lg:p-6">
             <div class="flex items-center">
-                <div class="p-3 rounded-full bg-orange-100">
-                    <i class="fas fa-layer-group text-orange-600 text-xl"></i>
+                <div class="p-2 lg:p-3 rounded-full bg-purple-100">
+                    <i class="fas fa-layer-group text-purple-600 text-sm lg:text-xl"></i>
                 </div>
-                <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-600">Batch Aktif</p>
-                    <p class="text-2xl font-bold text-gray-900">{{ $stats['active_batches'] }}</p>
+                <div class="ml-2 lg:ml-4 min-w-0 flex-1">
+                    <p class="text-xs lg:text-sm font-medium text-gray-600 truncate">Batch Aktif</p>
+                    <p class="text-lg lg:text-2xl font-bold text-gray-900">{{ $stats['active_batches'] }}</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Fish Growth Table -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100">
-        <div class="p-6 border-b border-gray-200">
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <!-- Growth Logs Content -->
+    <div class="bg-white rounded-lg lg:rounded-xl shadow-sm border border-gray-100">
+        <!-- Header -->
+        <div class="p-4 lg:p-6 border-b border-gray-200">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 lg:gap-4">
                 <div>
-                    <h3 class="text-lg font-semibold text-gray-900">Data Pertumbuhan Ikan</h3>
-                    <p class="text-sm text-gray-600 mt-1">Monitor pertumbuhan ikan di cabang {{ $branchInfo->name }}</p>
+                    <h3 class="text-base lg:text-lg font-semibold text-gray-900">Catatan Pertumbuhan Ikan</h3>
+                    <p class="text-xs lg:text-sm text-gray-600 mt-1">{{ $branchInfo->name }}</p>
                 </div>
-                <button onclick="openAddModal()" class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
-                    <i class="fas fa-plus mr-2"></i>
-                    Tambah Data
+                <button onclick="openAddModal()" class="inline-flex items-center justify-center px-3 lg:px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors">
+                    <i class="fas fa-plus mr-1 lg:mr-2"></i>
+                    <span class="hidden sm:inline">Tambah Catatan Pertumbuhan</span>
+                    <span class="sm:hidden">Tambah</span>
                 </button>
             </div>
         </div>
 
-        <div class="overflow-x-auto">
+        <!-- Mobile Card View -->
+        <div class="block lg:hidden">
+            @forelse($growthLogs as $log)
+            <hr><hr><hr>
+            <hr><hr><hr>
+            <div class="border-b border-gray-100 last:border-b-0 p-4 hover:bg-gray-50 transition-colors">
+                <div class="flex items-start justify-between mb-3">
+                    <div class="flex items-center space-x-2">
+                        <!-- Batch Image -->
+                        @if($log->batch_image_url)
+                            <img class="h-8 w-8 rounded-lg object-cover border border-gray-200 cursor-pointer"
+                                 src="{{ $log->batch_image_url }}"
+                                 alt="Batch #{{ $log->batch_id }}"
+                                 onclick="showImageModal('{{ $log->batch_image_url }}', 'Batch #{{ $log->batch_id }}')"
+                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                            <div class="h-8 w-8 rounded-lg bg-gray-100 border border-gray-200 items-center justify-center hidden">
+                                <i class="fas fa-fish text-gray-400 text-xs"></i>
+                            </div>
+                        @else
+                            <div class="h-8 w-8 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center">
+                                <i class="fas fa-fish text-gray-400 text-xs"></i>
+                            </div>
+                        @endif
+
+                        <div>
+                            <div class="text-sm font-medium text-gray-900">{{ $log->formatted_date }}</div>
+                            <div class="text-xs text-gray-500">Minggu ke-{{ $log->week_number }}</div>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center space-x-2">
+                        <button onclick="editGrowthLog({{ $log->id }})" class="text-blue-600 hover:text-blue-900 p-1" title="Edit">
+                            <i class="fas fa-edit text-sm"></i>
+                        </button>
+                        <button onclick="deleteGrowthLog({{ $log->id }}, 'Minggu {{ $log->week_number }}')" class="text-red-600 hover:text-red-900 p-1" title="Hapus">
+                            <i class="fas fa-trash text-sm"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Growth Metrics -->
+                <div class="grid grid-cols-2 gap-3 mb-3">
+                    <div class="bg-blue-50 rounded-lg p-3">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-xs text-blue-600 font-medium">Berat Rata-rata</p>
+                                <p class="text-lg font-bold text-blue-900">{{ $log->formatted_weight }}</p>
+                                <p class="text-xs text-blue-600">gram</p>
+                            </div>
+                            @if($log->weight_growth != 0)
+                                <div class="text-{{ $log->growth_status['color'] }}-600">
+                                    <i class="fas {{ $log->growth_status['icon'] }} text-sm"></i>
+                                    <span class="text-xs ml-1">{{ abs($log->weight_growth) }}g</span>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+
+                    <div class="bg-green-50 rounded-lg p-3">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-xs text-green-600 font-medium">Panjang Rata-rata</p>
+                                <p class="text-lg font-bold text-green-900">{{ $log->formatted_length }}</p>
+                                <p class="text-xs text-green-600">cm</p>
+                            </div>
+                            @if($log->length_growth != 0)
+                                <div class="text-{{ $log->growth_status['color'] }}-600">
+                                    <i class="fas {{ $log->growth_status['icon'] }} text-sm"></i>
+                                    <span class="text-xs ml-1">{{ abs($log->length_growth) }}cm</span>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Batch Info -->
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-2">
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                            Batch #{{ $log->batch_id }}
+                        </span>
+                        <span class="text-xs text-gray-500">{{ $log->pond_name }}</span>
+                    </div>
+                    @if($log->created_by_name)
+                        <span class="text-xs text-gray-400">{{ $log->created_by_name }}</span>
+                    @endif
+                </div>
+            </div>
+            @empty
+            <div class="p-8 text-center">
+                <i class="fas fa-chart-line text-gray-300 text-3xl mb-3"></i>
+                <h3 class="text-base font-medium text-gray-900 mb-2">Belum ada catatan pertumbuhan</h3>
+                <p class="text-sm text-gray-500 mb-4">Mulai dengan menambahkan catatan pertumbuhan ikan.</p>
+                <button onclick="openAddModal()" class="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors">
+                    <i class="fas fa-plus mr-2"></i>
+                    Tambah Sekarang
+                </button>
+            </div>
+            @endforelse
+        </div>
+
+        <!-- Desktop Table View -->
+        <div class="hidden lg:block overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
                     <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Batch Info</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dibuat</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Batch & Kolam</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Minggu</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Berat (g)</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Berat (gram)</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Panjang (cm)</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pertumbuhan</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dibuat</th>
                         <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
                     </tr>
                 </thead>
@@ -89,61 +194,84 @@
                     @forelse($growthLogs as $log)
                     <tr class="hover:bg-gray-50 transition-colors">
                         <td class="px-6 py-4">
-                            <div>
-                                <div class="text-sm font-medium text-gray-900">{{ $log->fish_type_name }}</div>
-                                <div class="text-sm text-gray-500">{{ $log->pond_name }} ({{ $log->pond_code }})</div>
-                                <div class="text-xs text-gray-400">Batch #{{ $log->batch_id }}</div>
+                            <div class="text-sm font-medium text-gray-900">
+                                {{ \Carbon\Carbon::parse($log->date_recorded)->format('d M Y') }}
                             </div>
+                            <div class="text-xs text-gray-500">
+                                {{ \Carbon\Carbon::parse($log->created_at)->format('H:i') }}
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="flex items-center space-x-3">
+                                <div class="flex-shrink-0">
+                                    @if($log->batch_image_url)
+                                        <img class="h-8 w-8 rounded-lg object-cover border border-gray-200 cursor-pointer"
+                                             src="{{ $log->batch_image_url }}"
+                                             alt="Batch #{{ $log->batch_id }}"
+                                             onclick="showImageModal('{{ $log->batch_image_url }}', 'Batch #{{ $log->batch_id }}')"
+                                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                        <div class="h-8 w-8 rounded-lg bg-gray-100 border border-gray-200 items-center justify-center hidden">
+                                            <i class="fas fa-fish text-gray-400 text-xs"></i>
+                                        </div>
+                                    @else
+                                        <div class="h-8 w-8 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center">
+                                            <i class="fas fa-fish text-gray-400 text-xs"></i>
+                                        </div>
+                                    @endif
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <div class="text-sm font-medium text-gray-900">Batch #{{ $log->batch_id }}</div>
+                                    <div class="text-sm text-gray-500">{{ $log->pond_name }} ({{ $log->pond_code }})</div>
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 mt-1">
+                                        {{ $log->fish_type_name }}
+                                    </span>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="text-sm font-medium text-gray-900">Minggu {{ $log->week_number }}</div>
+                            <div class="text-xs text-gray-500">{{ $log->batch_age_days }} hari</div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="text-sm font-medium text-gray-900">
+                                {{ number_format($log->avg_weight_gram, 1) }} g
+                            </div>
+                            @if($log->weight_growth != 0)
+                                <div class="flex items-center text-xs text-{{ $log->growth_status['color'] }}-600 mt-1">
+                                    <i class="fas {{ $log->growth_status['icon'] }} mr-1"></i>
+                                    {{ abs($log->weight_growth) }}g
+                                </div>
+                            @endif
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="text-sm font-medium text-gray-900">
+                                {{ number_format($log->avg_length_cm, 1) }} cm
+                            </div>
+                            @if($log->length_growth != 0)
+                                <div class="flex items-center text-xs text-{{ $log->growth_status['color'] }}-600 mt-1">
+                                    <i class="fas {{ $log->growth_status['icon'] }} mr-1"></i>
+                                    {{ abs($log->length_growth) }}cm
+                                </div>
+                            @endif
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium text-{{ $log->growth_status['color'] }}-800">
+                                <i class="fas {{ $log->growth_status['icon'] }} mr-1"></i>
+                                {{ ucfirst($log->growth_status['status']) }}
+                            </span>
                         </td>
                         <td class="px-6 py-4 text-sm text-gray-500">
-                            {{ \Carbon\Carbon::parse($log->date_recorded)->format('d M Y') }}
+                            {{ \Carbon\Carbon::parse($log->created_at)->format('d M Y') }}
                             @if($log->created_by_name)
-                            <div class="text-xs text-gray-400">{{ $log->created_by_name }}</div>
-                            @endif
-                        </td>
-                        <td class="px-6 py-4">
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                Minggu {{ $log->week_number }}
-                            </span>
-                            <div class="text-xs text-gray-500 mt-1">{{ $log->batch_age_days }} hari</div>
-                        </td>
-                        <td class="px-6 py-4">
-                            <div class="text-sm font-medium text-gray-900">{{ number_format($log->avg_weight_gram, 1) }}g</div>
-                            @if($log->weight_growth != 0)
-                            <div class="text-xs {{ $log->weight_growth > 0 ? 'text-green-600' : 'text-red-600' }}">
-                                {{ $log->weight_growth > 0 ? '+' : '' }}{{ number_format($log->weight_growth, 1) }}g
-                            </div>
-                            @endif
-                        </td>
-                        <td class="px-6 py-4">
-                            <div class="text-sm font-medium text-gray-900">{{ number_format($log->avg_length_cm, 1) }}cm</div>
-                            @if($log->length_growth != 0)
-                            <div class="text-xs {{ $log->length_growth > 0 ? 'text-green-600' : 'text-red-600' }}">
-                                {{ $log->length_growth > 0 ? '+' : '' }}{{ number_format($log->length_growth, 1) }}cm
-                            </div>
-                            @endif
-                        </td>
-                        <td class="px-6 py-4">
-                            @if($log->weight_growth > 0 && $log->length_growth > 0)
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                <i class="fas fa-arrow-up mr-1"></i>Baik
-                            </span>
-                            @elseif($log->weight_growth > 0 || $log->length_growth > 0)
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                <i class="fas fa-minus mr-1"></i>Normal
-                            </span>
-                            @else
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                                <i class="fas fa-circle mr-1"></i>Awal
-                            </span>
+                                <div class="text-xs text-gray-400">{{ $log->created_by_name }}</div>
                             @endif
                         </td>
                         <td class="px-6 py-4 text-right text-sm font-medium">
                             <div class="flex items-center justify-end space-x-2">
-                                <button onclick="editGrowth({{ $log->id }})" class="text-blue-600 hover:text-blue-900 p-1">
+                                <button onclick="editGrowthLog({{ $log->id }})" class="text-blue-600 hover:text-blue-900 p-1" title="Edit">
                                     <i class="fas fa-edit"></i>
                                 </button>
-                                <button onclick="deleteGrowth({{ $log->id }}, 'Minggu {{ $log->week_number }} - {{ $log->fish_type_name }}')" class="text-red-600 hover:text-red-900 p-1">
+                                <button onclick="deleteGrowthLog({{ $log->id }}, 'Minggu {{ $log->week_number }}')" class="text-red-600 hover:text-red-900 p-1" title="Hapus">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </div>
@@ -151,14 +279,14 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="7" class="px-6 py-12 text-center">
+                        <td colspan="8" class="px-6 py-12 text-center">
                             <div class="flex flex-col items-center">
                                 <i class="fas fa-chart-line text-gray-300 text-4xl mb-4"></i>
-                                <h3 class="text-lg font-medium text-gray-900 mb-2">Belum ada data pertumbuhan</h3>
-                                <p class="text-gray-500 mb-4">Mulai dengan menambahkan data pertumbuhan ikan pertama.</p>
-                                <button onclick="openAddModal()" class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
+                                <h3 class="text-lg font-medium text-gray-900 mb-2">Belum ada catatan pertumbuhan</h3>
+                                <p class="text-gray-500 mb-4">Mulai dengan menambahkan catatan pertumbuhan ikan pertama untuk cabang ini.</p>
+                                <button onclick="openAddModal()" class="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors">
                                     <i class="fas fa-plus mr-2"></i>
-                                    Tambah Data
+                                    Tambah Catatan Pertumbuhan
                                 </button>
                             </div>
                         </td>
@@ -167,16 +295,78 @@
                 </tbody>
             </table>
         </div>
+
+        <!-- Pagination -->
+        @if($pagination['total_pages'] > 1)
+        <div class="px-4 py-3 lg:px-6 lg:py-4 border-t border-gray-200">
+            <div class="flex flex-col sm:flex-row items-center justify-between space-y-3 sm:space-y-0">
+                <!-- Mobile Pagination Info -->
+                <div class="text-xs lg:text-sm text-gray-700 order-2 sm:order-1">
+                    Halaman {{ $pagination['current_page'] }} dari {{ $pagination['total_pages'] }}
+                    <span class="hidden sm:inline">({{ $pagination['total_items'] }} total)</span>
+                </div>
+
+                <!-- Pagination Controls -->
+                <div class="flex items-center space-x-2 order-1 sm:order-2">
+                    @if($pagination['has_prev'])
+                        <a href="?page={{ $pagination['prev_page'] }}"
+                           class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:text-gray-700 transition-colors">
+                            <i class="fas fa-chevron-left mr-1"></i>
+                            <span class="hidden sm:inline">Sebelumnya</span>
+                        </a>
+                    @endif
+
+                    <!-- Page Numbers (Desktop Only) -->
+                    <div class="hidden lg:flex items-center space-x-1">
+                        @php
+                            $start = max(1, $pagination['current_page'] - 2);
+                            $end = min($pagination['total_pages'], $pagination['current_page'] + 2);
+                        @endphp
+
+                        @if($start > 1)
+                            <a href="?page=1" class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">1</a>
+                            @if($start > 2)
+                                <span class="px-2 text-gray-500">...</span>
+                            @endif
+                        @endif
+
+                        @for($i = $start; $i <= $end; $i++)
+                            @if($i == $pagination['current_page'])
+                                <span class="px-3 py-2 text-sm font-medium text-white bg-blue-600 border border-blue-600 rounded-lg">{{ $i }}</span>
+                            @else
+                                <a href="?page={{ $i }}" class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">{{ $i }}</a>
+                            @endif
+                        @endfor
+
+                        @if($end < $pagination['total_pages'])
+                            @if($end < $pagination['total_pages'] - 1)
+                                <span class="px-2 text-gray-500">...</span>
+                            @endif
+                            <a href="?page={{ $pagination['total_pages'] }}" class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">{{ $pagination['total_pages'] }}</a>
+                        @endif
+                    </div>
+
+                    @if($pagination['has_next'])
+                        <a href="?page={{ $pagination['next_page'] }}"
+                           class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:text-gray-700 transition-colors">
+                            <span class="hidden sm:inline">Selanjutnya</span>
+                            <i class="fas fa-chevron-right ml-1"></i>
+                        </a>
+                    @endif
+                </div>
+            </div>
+        </div>
+        @endif
     </div>
 </div>
 
-<!-- Add/Edit Modal -->
+<!-- Add/Edit Modal - Mobile Optimized -->
 <div id="growthModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 hidden">
-    <div class="relative top-20 mx-auto p-5 border w-full max-w-lg shadow-lg rounded-lg bg-white">
+    <div class="relative top-4 lg:top-20 mx-auto p-4 lg:p-5 border w-full max-w-2xl shadow-lg rounded-lg bg-white m-4">
         <div class="mt-3">
             <div class="flex items-center justify-between mb-4">
-                <h3 id="modalTitle" class="text-lg font-medium text-gray-900">Tambah Data Pertumbuhan</h3>
-                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600">
+                <h3 id="modalTitle" class="text-base lg:text-lg font-medium text-gray-900">Tambah Catatan Pertumbuhan</h3>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 p-1">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -184,55 +374,122 @@
             <form id="growthForm" class="space-y-4">
                 <input type="hidden" id="growthId" name="id">
 
+                <!-- Custom Batch Dropdown - Mobile Optimized -->
                 <div>
-                    <label for="fish_batch_id" class="block text-sm font-medium text-gray-700 mb-1">Batch Ikan *</label>
-                    <select id="fish_batch_id" name="fish_batch_id" required
-                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                        <option value="">Pilih Batch Ikan</option>
-                        @foreach($fishBatches as $batch)
-                        <option value="{{ $batch->id }}">{{ $batch->fish_type_name }} - {{ $batch->pond_name }}</option>
-                        @endforeach
-                    </select>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Batch Ikan *</label>
+                    <div class="relative">
+                        <select id="fish_batch_id" name="fish_batch_id" required class="hidden">
+                            <option value="">Pilih Batch Ikan</option>
+                            @foreach($fishBatches as $batch)
+                            <option value="{{ $batch->id }}">
+                                Batch #{{ $batch->id }} - {{ $batch->pond_name }} ({{ $batch->fish_type_name }})
+                            </option>
+                            @endforeach
+                        </select>
+
+                        <button type="button" id="batchDropdownBtn" onclick="toggleBatchDropdown()"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-left flex items-center justify-between">
+                            <div class="flex items-center space-x-2 lg:space-x-3 min-w-0 flex-1">
+                                <div id="selectedBatchImage" class="hidden flex-shrink-0">
+                                    <img class="h-5 w-5 lg:h-6 lg:w-6 rounded object-cover border border-gray-200" src="" alt="">
+                                </div>
+                                <span id="selectedBatchText" class="text-gray-500 truncate">Pilih Batch Ikan</span>
+                            </div>
+                            <i id="batchDropdownIcon" class="fas fa-chevron-down text-gray-400 transition-transform duration-200 flex-shrink-0"></i>
+                        </button>
+
+                        <div id="batchDropdownMenu" class="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 lg:max-h-60 overflow-y-auto hidden">
+                            @foreach($fishBatches as $batch)
+                                <div class="batch-option px-3 py-2 lg:py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                                     data-value="{{ $batch->id }}"
+                                     data-batch-id="{{ $batch->id }}"
+                                     data-pond-name="{{ $batch->pond_name }}"
+                                     data-fish-type="{{ $batch->fish_type_name }}"
+                                     data-current-stock="{{ $batch->current_stock }}"
+                                     data-age-days="{{ $batch->age_days }}"
+                                     data-age-weeks="{{ $batch->age_weeks }}"
+                                     data-image="{{ $batch->image_url }}"
+                                     onclick="selectBatch(this)">
+                                    <div class="flex items-center space-x-2 lg:space-x-3">
+                                        <div class="flex-shrink-0">
+                                            @if($batch->image_url)
+                                                <img class="h-8 w-8 lg:h-10 lg:w-10 rounded-lg object-cover border border-gray-200"
+                                                     src="{{ $batch->image_url }}"
+                                                     alt="Batch #{{ $batch->id }}"
+                                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                                <div class="h-8 w-8 lg:h-10 lg:w-10 rounded-lg bg-gray-100 border border-gray-200 items-center justify-center hidden">
+                                                    <i class="fas fa-fish text-gray-400 text-sm"></i>
+                                                </div>
+                                            @else
+                                                <div class="h-8 w-8 lg:h-10 lg:w-10 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center">
+                                                    <i class="fas fa-fish text-gray-400 text-sm"></i>
+                                                </div>
+                                            @endif
+                                        </div>
+                                        <div class="flex-1 min-w-0">
+                                            <div class="flex items-center space-x-2">
+                                                <p class="text-sm font-medium text-gray-900">Batch #{{ $batch->id }}</p>
+                                                <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                                                    {{ number_format($batch->current_stock) }}
+                                                </span>
+                                            </div>
+                                            <p class="text-xs lg:text-sm text-gray-500 truncate">{{ $batch->pond_name }} ({{ $batch->pond_code }})</p>
+                                            <div class="flex items-center space-x-2 mt-1">
+                                                <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                                                    {{ $batch->fish_type_name }}
+                                                </span>
+                                                <span class="text-xs text-gray-500">{{ $batch->age_weeks }}w</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                    <div id="batchInfo" class="text-xs text-gray-500 mt-1 hidden">
+                        Stok: <span id="currentStock">0</span> ekor | Umur: <span id="batchAge">0</span> minggu
+                    </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
                     <div>
-                        <label for="week_number" class="block text-sm font-medium text-gray-700 mb-1">Minggu Ke *</label>
+                        <label for="week_number" class="block text-sm font-medium text-gray-700 mb-1">Minggu ke- *</label>
                         <input type="number" id="week_number" name="week_number" required min="1"
                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                placeholder="1">
+                        <p class="text-xs text-gray-500 mt-1">Minggu pertumbuhan batch</p>
                     </div>
 
                     <div>
-                        <label for="date_recorded" class="block text-sm font-medium text-gray-700 mb-1">Tanggal *</label>
+                        <label for="date_recorded" class="block text-sm font-medium text-gray-700 mb-1">Tanggal Pencatatan *</label>
                         <input type="date" id="date_recorded" name="date_recorded" required max="{{ date('Y-m-d') }}"
                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
                     <div>
-                        <label for="avg_weight_gram" class="block text-sm font-medium text-gray-700 mb-1">Berat Rata-rata (g) *</label>
+                        <label for="avg_weight_gram" class="block text-sm font-medium text-gray-700 mb-1">Berat Rata-rata (gram) *</label>
                         <input type="number" id="avg_weight_gram" name="avg_weight_gram" required min="0" step="0.1"
                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                               placeholder="50.5">
+                               placeholder="15.5">
                     </div>
 
                     <div>
                         <label for="avg_length_cm" class="block text-sm font-medium text-gray-700 mb-1">Panjang Rata-rata (cm) *</label>
                         <input type="number" id="avg_length_cm" name="avg_length_cm" required min="0" step="0.1"
                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                               placeholder="12.5">
+                               placeholder="8.5">
                     </div>
                 </div>
 
-                <div class="flex items-center justify-end space-x-3 pt-4">
+                <div class="flex flex-col-reverse sm:flex-row items-center justify-end space-y-reverse space-y-2 sm:space-y-0 sm:space-x-3 pt-4">
                     <button type="button" onclick="closeModal()"
-                            class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
+                            class="w-full sm:w-auto px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
                         Batal
                     </button>
                     <button type="submit" id="submitBtn"
-                            class="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors">
+                            class="w-full sm:w-auto px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors">
                         <span id="submitText">Simpan</span>
                         <i id="submitLoader" class="fas fa-spinner fa-spin ml-2 hidden"></i>
                     </button>
@@ -242,242 +499,727 @@
     </div>
 </div>
 
-<!-- Delete Confirmation Modal -->
+<!-- Delete Confirmation Modal - Mobile Optimized -->
 <div id="deleteModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 hidden">
-    <div class="relative top-20 mx-auto p-5 border w-full max-w-md shadow-lg rounded-lg bg-white">
+    <div class="relative top-20 mx-auto p-4 lg:p-5 border w-full max-w-md shadow-lg rounded-lg bg-white m-4">
         <div class="mt-3 text-center">
             <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
                 <i class="fas fa-exclamation-triangle text-red-600"></i>
             </div>
-            <h3 class="text-lg font-medium text-gray-900 mb-2">Hapus Data Pertumbuhan</h3>
+            <h3 class="text-base lg:text-lg font-medium text-gray-900 mb-2">Hapus Catatan Pertumbuhan</h3>
             <p class="text-sm text-gray-500 mb-4">
-                Apakah Anda yakin ingin menghapus data <strong id="deleteGrowthName"></strong>?
+                Apakah Anda yakin ingin menghapus catatan pertumbuhan <strong id="deleteGrowthInfo"></strong>?
                 Tindakan ini tidak dapat dibatalkan.
             </p>
-            <div class="flex items-center justify-center space-x-3">
+            <div class="flex flex-col-reverse sm:flex-row items-center justify-center space-y-reverse space-y-2 sm:space-y-0 sm:space-x-3">
                 <button onclick="closeDeleteModal()"
-                        class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
+                        class="w-full sm:w-auto px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
                     Batal
                 </button>
                 <button onclick="confirmDelete()" id="deleteBtn"
-                class="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors">
-                <span id="deleteText">Hapus</span>
-                <i id="deleteLoader" class="fas fa-spinner fa-spin ml-2 hidden"></i>
-            </button>
+                        class="w-full sm:w-auto px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors">
+                    <span id="deleteText">Hapus</span>
+                    <i id="deleteLoader" class="fas fa-spinner fa-spin ml-2 hidden"></i>
+                </button>
+            </div>
         </div>
     </div>
 </div>
+
+<!-- Image Modal -->
+<div id="imageModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 hidden">
+    <div class="relative max-w-4xl max-h-full p-4">
+        <button onclick="closeImageModal()" class="absolute top-2 right-2 text-white hover:text-gray-300 z-10">
+            <i class="fas fa-times text-2xl"></i>
+        </button>
+        <img id="modalImage" src="" alt="" class="max-w-full max-h-full rounded-lg">
+        <div class="text-center mt-2">
+            <p id="modalImageTitle" class="text-white text-sm"></p>
+        </div>
+    </div>
 </div>
 
 <script>
 let currentGrowthId = null;
 let deleteId = null;
 
+// Batch Dropdown Functions
+function toggleBatchDropdown() {
+    const menu = document.getElementById('batchDropdownMenu');
+    const icon = document.getElementById('batchDropdownIcon');
+
+    if (menu.classList.contains('hidden')) {
+        menu.classList.remove('hidden');
+        icon.classList.add('rotate-180');
+    } else {
+        menu.classList.add('hidden');
+        icon.classList.remove('rotate-180');
+    }
+}
+
+function selectBatch(element) {
+    const batchId = element.dataset.value;
+    const batchIdNum = element.dataset.batchId;
+    const pondName = element.dataset.pondName;
+    const fishType = element.dataset.fishType;
+    const currentStock = element.dataset.currentStock;
+    const ageDays = element.dataset.ageDays;
+    const ageWeeks = element.dataset.ageWeeks;
+    const imageUrl = element.dataset.image;
+
+    // Update hidden select
+    document.getElementById('fish_batch_id').value = batchId;
+
+    // Update display
+    const selectedText = document.getElementById('selectedBatchText');
+    const selectedImage = document.getElementById('selectedBatchImage');
+    const batchInfo = document.getElementById('batchInfo');
+
+    selectedText.textContent = `Batch #${batchIdNum} - ${pondName} (${fishType})`;
+    selectedText.classList.remove('text-gray-500');
+    selectedText.classList.add('text-gray-900');
+
+    // Update image
+    if (imageUrl && imageUrl !== 'null') {
+        selectedImage.querySelector('img').src = imageUrl;
+        selectedImage.classList.remove('hidden');
+    } else {
+        selectedImage.classList.add('hidden');
+    }
+
+    // Update batch info
+    document.getElementById('currentStock').textContent = new Intl.NumberFormat().format(currentStock);
+    document.getElementById('batchAge').textContent = ageWeeks;
+    batchInfo.classList.remove('hidden');
+
+    // Auto-suggest week number based on batch age
+    const weekInput = document.getElementById('week_number');
+    if (!weekInput.value && ageWeeks > 0) {
+        weekInput.value = ageWeeks;
+    }
+
+    // Close dropdown
+    document.getElementById('batchDropdownMenu').classList.add('hidden');
+    document.getElementById('batchDropdownIcon').classList.remove('rotate-180');
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', function(event) {
+    const dropdown = document.getElementById('batchDropdownMenu');
+    const button = document.getElementById('batchDropdownBtn');
+
+    if (!dropdown.contains(event.target) && !button.contains(event.target)) {
+        dropdown.classList.add('hidden');
+        document.getElementById('batchDropdownIcon').classList.remove('rotate-180');
+    }
+});
+
+// Image Modal Functions
+function showImageModal(src, title) {
+    document.getElementById('modalImage').src = src;
+    document.getElementById('modalImageTitle').textContent = title;
+    document.getElementById('imageModal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden'; // Prevent background scroll
+}
+
+function closeImageModal() {
+    document.getElementById('imageModal').classList.add('hidden');
+    document.body.style.overflow = 'auto'; // Restore scroll
+}
+
 // Modal functions
 function openAddModal() {
-document.getElementById('modalTitle').textContent = 'Tambah Data Pertumbuhan';
-document.getElementById('submitText').textContent = 'Simpan';
-document.getElementById('growthForm').reset();
-document.getElementById('growthId').value = '';
-currentGrowthId = null;
-document.getElementById('growthModal').classList.remove('hidden');
-document.getElementById('fish_batch_id').focus();
+    document.getElementById('modalTitle').textContent = 'Tambah Catatan Pertumbuhan';
+    document.getElementById('submitText').textContent = 'Simpan';
+    document.getElementById('growthForm').reset();
+    document.getElementById('growthId').value = '';
+    currentGrowthId = null;
+
+    // Reset batch dropdown
+    resetBatchDropdown();
+
+    document.getElementById('growthModal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden'; // Prevent background scroll
+
+    // Focus on batch dropdown after a short delay to ensure modal is visible
+    setTimeout(() => {
+        document.getElementById('batchDropdownBtn').focus();
+    }, 100);
 }
 
 function closeModal() {
-document.getElementById('growthModal').classList.add('hidden');
+    document.getElementById('growthModal').classList.add('hidden');
+    document.body.style.overflow = 'auto'; // Restore scroll
 }
 
 function closeDeleteModal() {
-document.getElementById('deleteModal').classList.add('hidden');
-deleteId = null;
+    document.getElementById('deleteModal').classList.add('hidden');
+    document.body.style.overflow = 'auto'; // Restore scroll
+    deleteId = null;
+}
+
+function resetBatchDropdown() {
+    document.getElementById('fish_batch_id').value = '';
+    document.getElementById('selectedBatchText').textContent = 'Pilih Batch Ikan';
+    document.getElementById('selectedBatchText').classList.add('text-gray-500');
+    document.getElementById('selectedBatchText').classList.remove('text-gray-900');
+    document.getElementById('selectedBatchImage').classList.add('hidden');
+    document.getElementById('batchInfo').classList.add('hidden');
+    document.getElementById('batchDropdownMenu').classList.add('hidden');
+    document.getElementById('batchDropdownIcon').classList.remove('rotate-180');
 }
 
 // CRUD functions
-function editGrowth(id) {
-currentGrowthId = id;
-document.getElementById('modalTitle').textContent = 'Edit Data Pertumbuhan';
-document.getElementById('submitText').textContent = 'Perbarui';
+function editGrowthLog(id) {
+    currentGrowthId = id;
+    document.getElementById('modalTitle').textContent = 'Edit Catatan Pertumbuhan';
+    document.getElementById('submitText').textContent = 'Perbarui';
 
-document.getElementById('growthModal').classList.remove('hidden');
+    document.getElementById('growthModal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
 
-fetch(`/fish-growth/${id}`)
+    // Show loading state
+    const form = document.getElementById('growthForm');
+    form.style.opacity = '0.6';
+
+    fetch(`/fish-growth/${id}`)
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                const data = result.data;
+                document.getElementById('growthId').value = data.id;
+                document.getElementById('fish_batch_id').value = data.fish_batch_id;
+                document.getElementById('week_number').value = data.week_number;
+                document.getElementById('avg_weight_gram').value = data.avg_weight_gram;
+                document.getElementById('avg_length_cm').value = data.avg_length_cm;
+                document.getElementById('date_recorded').value = data.date_recorded;
+
+                // Update batch dropdown display
+                const selectedBatch = document.querySelector(`[data-value="${data.fish_batch_id}"]`);
+                if (selectedBatch) {
+                    selectBatch(selectedBatch);
+                }
+
+                form.style.opacity = '1';
+                document.getElementById('week_number').focus();
+            } else {
+                showNotification('Error: ' + result.message, 'error');
+                closeModal();
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Gagal memuat data catatan pertumbuhan', 'error');
+            closeModal();
+        })
+        .finally(() => {
+            form.style.opacity = '1';
+        });
+}
+
+function deleteGrowthLog(id, info) {
+    deleteId = id;
+    document.getElementById('deleteGrowthInfo').textContent = info;
+    document.getElementById('deleteModal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+}
+
+function confirmDelete() {
+    if (!deleteId) return;
+
+    const deleteBtn = document.getElementById('deleteBtn');
+    const deleteText = document.getElementById('deleteText');
+    const deleteLoader = document.getElementById('deleteLoader');
+
+    deleteText.textContent = 'Menghapus...';
+    deleteLoader.classList.remove('hidden');
+    deleteBtn.disabled = true;
+
+    fetch(`/fish-growth/${deleteId}`, {
+        method: 'DELETE',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Content-Type': 'application/json'
+        }
+    })
     .then(response => response.json())
     .then(result => {
         if (result.success) {
-            document.getElementById('growthId').value = result.data.id;
-            document.getElementById('fish_batch_id').value = result.data.fish_batch_id;
-            document.getElementById('week_number').value = result.data.week_number;
-            document.getElementById('avg_weight_gram').value = result.data.avg_weight_gram;
-            document.getElementById('avg_length_cm').value = result.data.avg_length_cm;
-            document.getElementById('date_recorded').value = result.data.date_recorded;
-            document.getElementById('fish_batch_id').focus();
+            showNotification(result.message, 'success');
+            setTimeout(() => location.reload(), 1000);
         } else {
-            showNotification('Error: ' + result.message, 'error');
-            closeModal();
+            showNotification(result.message, 'error');
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        showNotification('Gagal memuat data pertumbuhan', 'error');
-        closeModal();
+        showNotification('Gagal menghapus catatan pertumbuhan', 'error');
+    })
+    .finally(() => {
+        deleteText.textContent = 'Hapus';
+        deleteLoader.classList.add('hidden');
+        deleteBtn.disabled = false;
+        closeDeleteModal();
     });
-}
-
-function deleteGrowth(id, name) {
-deleteId = id;
-document.getElementById('deleteGrowthName').textContent = name;
-document.getElementById('deleteModal').classList.remove('hidden');
-}
-
-function confirmDelete() {
-if (!deleteId) return;
-
-const deleteBtn = document.getElementById('deleteBtn');
-const deleteText = document.getElementById('deleteText');
-const deleteLoader = document.getElementById('deleteLoader');
-
-deleteText.textContent = 'Menghapus...';
-deleteLoader.classList.remove('hidden');
-deleteBtn.disabled = true;
-
-fetch(`/fish-growth/${deleteId}`, {
-    method: 'DELETE',
-    headers: {
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-        'Content-Type': 'application/json'
-    }
-})
-.then(response => response.json())
-.then(result => {
-    if (result.success) {
-        showNotification(result.message, 'success');
-        setTimeout(() => location.reload(), 1000);
-    } else {
-        showNotification(result.message, 'error');
-    }
-})
-.catch(error => {
-    console.error('Error:', error);
-    showNotification('Gagal menghapus data pertumbuhan', 'error');
-})
-.finally(() => {
-    deleteText.textContent = 'Hapus';
-    deleteLoader.classList.add('hidden');
-    deleteBtn.disabled = false;
-    closeDeleteModal();
-});
 }
 
 // Form submission
 document.getElementById('growthForm').addEventListener('submit', function(e) {
-e.preventDefault();
+    e.preventDefault();
 
-const submitBtn = document.getElementById('submitBtn');
-const submitText = document.getElementById('submitText');
-const submitLoader = document.getElementById('submitLoader');
+    const submitBtn = document.getElementById('submitBtn');
+    const submitText = document.getElementById('submitText');
+    const submitLoader = document.getElementById('submitLoader');
 
-const formData = new FormData(this);
-const isEdit = currentGrowthId !== null;
+    const formData = new FormData(this);
+    const isEdit = currentGrowthId !== null;
 
-submitText.textContent = isEdit ? 'Memperbarui...' : 'Menyimpan...';
-submitLoader.classList.remove('hidden');
-submitBtn.disabled = true;
-
-const url = isEdit ? `/fish-growth/${currentGrowthId}` : '/fish-growth';
-
-const data = {
-    fish_batch_id: formData.get('fish_batch_id'),
-    week_number: formData.get('week_number'),
-    avg_weight_gram: formData.get('avg_weight_gram'),
-    avg_length_cm: formData.get('avg_length_cm'),
-    date_recorded: formData.get('date_recorded')
-};
-
-if (isEdit) {
-    data._method = 'PUT';
-}
-
-fetch(url, {
-    method: 'POST',
-    headers: {
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-        'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(data)
-})
-.then(response => response.json())
-.then(result => {
-    if (result.success) {
-        showNotification(result.message, 'success');
-        closeModal();
-        setTimeout(() => location.reload(), 1000);
-    } else {
-        showNotification(result.message, 'error');
+    // Validate batch selection
+    if (!formData.get('fish_batch_id')) {
+        showNotification('Silakan pilih batch ikan terlebih dahulu', 'error');
+        return;
     }
-})
-.catch(error => {
-    console.error('Error:', error);
-    showNotification('Terjadi kesalahan. Silakan coba lagi.', 'error');
-})
-.finally(() => {
-    submitText.textContent = isEdit ? 'Perbarui' : 'Simpan';
-    submitLoader.classList.add('hidden');
-    submitBtn.disabled = false;
-});
-});
 
-// Notification function
-function showNotification(message, type = 'info') {
-const notification = document.createElement('div');
-notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg max-w-sm transform transition-all duration-300 translate-x-full`;
+    submitText.textContent = isEdit ? 'Memperbarui...' : 'Menyimpan...';
+    submitLoader.classList.remove('hidden');
+    submitBtn.disabled = true;
 
-if (type === 'success') {
-    notification.classList.add('bg-green-500', 'text-white');
-    notification.innerHTML = `<i class="fas fa-check-circle mr-2"></i>${message}`;
-} else if (type === 'error') {
-    notification.classList.add('bg-red-500', 'text-white');
-    notification.innerHTML = `<i class="fas fa-exclamation-circle mr-2"></i>${message}`;
-} else {
-    notification.classList.add('bg-blue-500', 'text-white');
-    notification.innerHTML = `<i class="fas fa-info-circle mr-2"></i>${message}`;
-}
+    const url = isEdit ? `/fish-growth/${currentGrowthId}` : '/fish-growth';
 
-document.body.appendChild(notification);
+    const data = {
+        fish_batch_id: formData.get('fish_batch_id'),
+        week_number: formData.get('week_number'),
+        avg_weight_gram: formData.get('avg_weight_gram'),
+        avg_length_cm: formData.get('avg_length_cm'),
+        date_recorded: formData.get('date_recorded')
+    };
 
-setTimeout(() => {
-    notification.classList.remove('translate-x-full');
-}, 100);
+    if (isEdit) {
+        data._method = 'PUT';
+    }
 
-setTimeout(() => {
-    notification.classList.add('translate-x-full');
-    setTimeout(() => {
-        if (notification.parentNode) {
-            notification.parentNode.removeChild(notification);
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            showNotification(result.message, 'success');
+            closeModal();
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            showNotification(result.message, 'error');
         }
-    }, 300);
-}, 4000);
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('Terjadi kesalahan. Silakan coba lagi.', 'error');
+    })
+    .finally(() => {
+        submitText.textContent = isEdit ? 'Perbarui' : 'Simpan';
+        submitLoader.classList.add('hidden');
+        submitBtn.disabled = false;
+    });
+});
+
+// Notification function - Mobile optimized
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 left-4 right-4 sm:top-4 sm:right-4 sm:left-auto z-50 p-3 sm:p-4 rounded-lg shadow-lg sm:max-w-sm transform transition-all duration-300 translate-y-[-100px] sm:translate-y-0 sm:translate-x-full`;
+
+    if (type === 'success') {
+        notification.classList.add('bg-green-500', 'text-white');
+        notification.innerHTML = `<div class="flex items-center"><i class="fas fa-check-circle mr-2 flex-shrink-0"></i><span class="flex-1">${message}</span></div>`;
+    } else if (type === 'error') {
+        notification.classList.add('bg-red-500', 'text-white');
+        notification.innerHTML = `<div class="flex items-center"><i class="fas fa-exclamation-circle mr-2 flex-shrink-0"></i><span class="flex-1">${message}</span></div>`;
+    } else {
+        notification.classList.add('bg-blue-500', 'text-white');
+        notification.innerHTML = `<div class="flex items-center"><i class="fas fa-info-circle mr-2 flex-shrink-0"></i><span class="flex-1">${message}</span></div>`;
+    }
+
+    document.body.appendChild(notification);
+
+    setTimeout(() => {
+        notification.classList.remove('translate-y-[-100px]', 'sm:translate-x-full');
+    }, 100);
+
+    setTimeout(() => {
+        notification.classList.add('translate-y-[-100px]', 'sm:translate-x-full');
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 300);
+    }, 4000);
 }
 
 // Close modals on escape key
 document.addEventListener('keydown', function(e) {
-if (e.key === 'Escape') {
-    closeModal();
-    closeDeleteModal();
-}
+    if (e.key === 'Escape') {
+        closeModal();
+        closeDeleteModal();
+        closeImageModal();
+    }
 });
 
 // Close modals when clicking outside
 document.getElementById('growthModal').addEventListener('click', function(e) {
-if (e.target === this) {
-    closeModal();
-}
+    if (e.target === this) {
+        closeModal();
+    }
 });
 
 document.getElementById('deleteModal').addEventListener('click', function(e) {
-if (e.target === this) {
-    closeDeleteModal();
+    if (e.target === this) {
+        closeDeleteModal();
+    }
+});
+
+document.getElementById('imageModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeImageModal();
+    }
+});
+
+// Handle window resize for responsive behavior
+window.addEventListener('resize', function() {
+    // Close dropdowns on resize to prevent positioning issues
+    const dropdown = document.getElementById('batchDropdownMenu');
+    if (!dropdown.classList.contains('hidden')) {
+        dropdown.classList.add('hidden');
+        document.getElementById('batchDropdownIcon').classList.remove('rotate-180');
+    }
+});
+
+// Prevent zoom on iOS when focusing inputs
+if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+    const inputs = document.querySelectorAll('input, select, textarea');
+    inputs.forEach(input => {
+        input.addEventListener('focus', function() {
+            input.style.fontSize = '16px';
+        });
+        input.addEventListener('blur', function() {
+            input.style.fontSize = '';
+        });
+    });
 }
+
+// Auto-hide mobile keyboard when scrolling
+let lastScrollTop = 0;
+window.addEventListener('scroll', function() {
+    const currentScrollTop = window.pageYOffset || document.documentElement.scrollTop;
+
+    if (currentScrollTop > lastScrollTop) {
+        // Scrolling down - blur active input to hide keyboard
+        const activeElement = document.activeElement;
+        if (activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA')) {
+            activeElement.blur();
+        }
+    }
+
+    lastScrollTop = currentScrollTop <= 0 ? 0 : currentScrollTop;
+}, false);
+
+// Initialize page
+document.addEventListener('DOMContentLoaded', function() {
+    // Set default date to today
+    const dateInput = document.getElementById('date_recorded');
+    if (dateInput && !dateInput.value) {
+        dateInput.value = new Date().toISOString().split('T')[0];
+    }
+
+    // Add loading states to pagination links
+    const paginationLinks = document.querySelectorAll('a[href*="page="]');
+    paginationLinks.forEach(link => {
+        link.addEventListener('click', function() {
+            this.style.opacity = '0.6';
+            this.style.pointerEvents = 'none';
+        });
+    });
 });
 </script>
+
+<!-- Custom CSS for mobile optimization -->
+<style>
+/* Mobile-specific styles */
+@media (max-width: 640px) {
+    /* Ensure modals are properly sized on mobile */
+    #growthModal > div,
+    #deleteModal > div {
+        margin: 1rem;
+        max-height: calc(100vh - 2rem);
+        overflow-y: auto;
+    }
+
+    /* Improve touch targets */
+    button, .batch-option {
+        min-height: 44px;
+    }
+
+    /* Better spacing for mobile cards */
+    .mobile-card {
+        padding: 1rem;
+        margin-bottom: 0.5rem;
+    }
+
+    /* Prevent horizontal scroll */
+    body {
+        overflow-x: hidden;
+    }
+
+    /* Improve dropdown positioning on mobile */
+    #batchDropdownMenu {
+        position: fixed;
+        top: auto;
+        left: 1rem;
+        right: 1rem;
+        width: auto;
+        max-height: 50vh;
+        z-index: 60;
+    }
+
+    /* Better notification positioning */
+    .notification-mobile {
+        left: 1rem;
+        right: 1rem;
+        width: auto;
+    }
+}
+
+/* Loading animation */
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+.loading {
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* Smooth transitions */
+.transition-all {
+    transition: all 0.3s ease;
+}
+
+/* Custom scrollbar for dropdown */
+#batchDropdownMenu::-webkit-scrollbar {
+    width: 4px;
+}
+
+#batchDropdownMenu::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 2px;
+}
+
+#batchDropdownMenu::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 2px;
+}
+
+#batchDropdownMenu::-webkit-scrollbar-thumb:hover {
+    background: #a1a1a1;
+}
+
+/* Improve focus states for accessibility */
+input:focus, select:focus, textarea:focus, button:focus {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+}
+
+/* Better hover states on touch devices */
+@media (hover: hover) {
+    .hover\:bg-gray-50:hover {
+        background-color: #f9fafb;
+    }
+
+    .hover\:text-blue-900:hover {
+        color: #1e3a8a;
+    }
+
+    .hover\:text-red-900:hover {
+        color: #7f1d1d;
+    }
+}
+
+/* Prevent text selection on buttons */
+button {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+/* Improve image loading */
+img {
+    loading: lazy;
+}
+
+/* Better spacing for mobile stats */
+@media (max-width: 640px) {
+    .stats-grid {
+        gap: 0.75rem;
+    }
+
+    .stats-card {
+        padding: 0.75rem;
+    }
+}
+
+/* Growth status indicators */
+.growth-positive {
+    color: #059669;
+}
+
+.growth-negative {
+    color: #dc2626;
+}
+
+.growth-neutral {
+    color: #6b7280;
+}
+
+/* Mobile card enhancements */
+.mobile-growth-card {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border-left: 4px solid #3b82f6;
+}
+
+.mobile-growth-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Metric cards styling */
+.metric-card {
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    border: 1px solid #e2e8f0;
+    transition: all 0.3s ease;
+}
+
+.metric-card:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Responsive table improvements */
+@media (max-width: 1024px) {
+    .desktop-table {
+        font-size: 0.875rem;
+    }
+
+    .desktop-table th,
+    .desktop-table td {
+        padding: 0.75rem 0.5rem;
+    }
+}
+
+/* Form input improvements */
+.form-input {
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Dropdown improvements */
+.dropdown-option {
+    transition: background-color 0.15s ease;
+}
+
+.dropdown-option:hover {
+    background-color: #f8fafc;
+}
+
+.dropdown-option:active {
+    background-color: #e2e8f0;
+}
+
+/* Badge styling */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    font-weight: 500;
+    border-radius: 0.375rem;
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+}
+
+.badge-blue {
+    background-color: #dbeafe;
+    color: #1e40af;
+}
+
+.badge-green {
+    background-color: #d1fae5;
+    color: #065f46;
+}
+
+.badge-orange {
+    background-color: #fed7aa;
+    color: #9a3412;
+}
+
+.badge-red {
+    background-color: #fecaca;
+    color: #991b1b;
+}
+
+/* Animation for growth indicators */
+@keyframes growthPulse {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.8;
+        transform: scale(1.05);
+    }
+}
+
+.growth-indicator {
+    animation: growthPulse 2s ease-in-out infinite;
+}
+
+/* Skeleton loading for better UX */
+.skeleton {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+/* Print styles */
+@media print {
+    .no-print {
+        display: none !important;
+    }
+
+    .print-full-width {
+        width: 100% !important;
+        max-width: none !important;
+    }
+
+    .print-break-inside-avoid {
+        break-inside: avoid;
+    }
+}
+</style>
 @endsection
+
+

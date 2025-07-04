@@ -57,4 +57,9 @@ class FishBatchTransfer extends Model
         if ($percentage <= 50) return 'major';
         return 'massive';
     }
+
+    public function createdBy()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
 }

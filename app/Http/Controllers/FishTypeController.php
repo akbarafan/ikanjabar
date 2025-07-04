@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class FishTypeController extends Controller
@@ -10,7 +11,7 @@ class FishTypeController extends Controller
     private function getCurrentBranchId()
     {
         // Sementara hardcode untuk demo, nanti bisa dari session/auth
-        return 1;
+        return Auth::user()->branch_id;
     }
 
     public function index()

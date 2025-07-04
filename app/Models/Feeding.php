@@ -61,4 +61,9 @@ class Feeding extends Model
 
         return round(($this->feed_amount_kg * 1000) / $currentStock, 2); // dalam gram
     }
+
+    public function createdBy()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
 }

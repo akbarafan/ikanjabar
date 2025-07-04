@@ -3,76 +3,172 @@
 @section('page-title', 'Mortalitas Ikan')
 
 @section('content')
-<div class="space-y-6">
-    <!-- Stats Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+<div class="space-y-4 lg:space-y-6">
+    <!-- Stats Cards - Mobile Optimized -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
+        <div class="bg-white rounded-lg lg:rounded-xl shadow-sm border border-gray-100 p-3 lg:p-6">
             <div class="flex items-center">
-                <div class="p-3 rounded-full bg-red-100">
-                    <i class="fas fa-skull-crossbones text-red-600 text-xl"></i>
+                <div class="p-2 lg:p-3 rounded-full bg-red-100">
+                    <i class="fas fa-skull-crossbones text-red-600 text-sm lg:text-xl"></i>
                 </div>
-                <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-600">Total Catatan</p>
-                    <p class="text-2xl font-bold text-gray-900">{{ $stats['total_records'] }}</p>
+                <div class="ml-2 lg:ml-4 min-w-0 flex-1">
+                    <p class="text-xs lg:text-sm font-medium text-gray-600 truncate">Total</p>
+                    <p class="text-lg lg:text-2xl font-bold text-gray-900">{{ $stats['total_records'] }}</p>
                 </div>
             </div>
         </div>
 
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <div class="bg-white rounded-lg lg:rounded-xl shadow-sm border border-gray-100 p-3 lg:p-6">
             <div class="flex items-center">
-                <div class="p-3 rounded-full bg-orange-100">
-                    <i class="fas fa-fish text-orange-600 text-xl"></i>
+                <div class="p-2 lg:p-3 rounded-full bg-orange-100">
+                    <i class="fas fa-fish text-orange-600 text-sm lg:text-xl"></i>
                 </div>
-                <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-600">Total Kematian</p>
-                    <p class="text-2xl font-bold text-gray-900">{{ number_format($stats['total_dead_fish']) }}</p>
+                <div class="ml-2 lg:ml-4 min-w-0 flex-1">
+                    <p class="text-xs lg:text-sm font-medium text-gray-600 truncate">Kematian</p>
+                    <p class="text-lg lg:text-2xl font-bold text-gray-900">{{ number_format($stats['total_dead_fish']) }}</p>
                     <p class="text-xs text-gray-500">Ekor</p>
                 </div>
             </div>
         </div>
 
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <div class="bg-white rounded-lg lg:rounded-xl shadow-sm border border-gray-100 p-3 lg:p-6">
             <div class="flex items-center">
-                <div class="p-3 rounded-full bg-yellow-100">
-                    <i class="fas fa-percentage text-yellow-600 text-xl"></i>
+                <div class="p-2 lg:p-3 rounded-full bg-yellow-100">
+                    <i class="fas fa-percentage text-yellow-600 text-sm lg:text-xl"></i>
                 </div>
-                <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-600">Rata-rata Tingkat</p>
-                    <p class="text-2xl font-bold text-gray-900">{{ number_format($stats['avg_mortality_rate'], 1) }}%</p>
-                    <p class="text-xs text-gray-500">Mortalitas</p>
+                <div class="ml-2 lg:ml-4 min-w-0 flex-1">
+                    <p class="text-xs lg:text-sm font-medium text-gray-600 truncate">Rata-rata</p>
+                    <p class="text-lg lg:text-2xl font-bold text-gray-900">{{ number_format($stats['avg_mortality_rate'], 1) }}%</p>
+                    <p class="text-xs text-gray-500">30 hari</p>
                 </div>
             </div>
         </div>
 
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <div class="bg-white rounded-lg lg:rounded-xl shadow-sm border border-gray-100 p-3 lg:p-6">
             <div class="flex items-center">
-                <div class="p-3 rounded-full bg-purple-100">
-                    <i class="fas fa-layer-group text-purple-600 text-xl"></i>
+                <div class="p-2 lg:p-3 rounded-full bg-purple-100">
+                    <i class="fas fa-layer-group text-purple-600 text-sm lg:text-xl"></i>
                 </div>
-                <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-600">Batch Terdampak</p>
-                    <p class="text-2xl font-bold text-gray-900">{{ $stats['affected_batches'] }}</p>
+                <div class="ml-2 lg:ml-4 min-w-0 flex-1">
+                    <p class="text-xs lg:text-sm font-medium text-gray-600 truncate">Batch</p>
+                    <p class="text-lg lg:text-2xl font-bold text-gray-900">{{ $stats['affected_batches'] }}</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Mortalities Table -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100">
-        <div class="p-6 border-b border-gray-200">
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <!-- Mortalities Content -->
+    <div class="bg-white rounded-lg lg:rounded-xl shadow-sm border border-gray-100">
+        <!-- Header -->
+        <div class="p-4 lg:p-6 border-b border-gray-200">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 lg:gap-4">
                 <div>
-                    <h3 class="text-lg font-semibold text-gray-900">Catatan Mortalitas</h3>
-                    <p class="text-sm text-gray-600 mt-1">Kelola data mortalitas ikan di cabang {{ $branchInfo->name }}</p>
+                    <h3 class="text-base lg:text-lg font-semibold text-gray-900">Catatan Mortalitas</h3>
+                    <p class="text-xs lg:text-sm text-gray-600 mt-1">{{ $branchInfo->name }}</p>
                 </div>
-                <button onclick="openAddModal()" class="inline-flex items-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors">
-                    <i class="fas fa-plus mr-2"></i>
-                    Tambah Mortalitas
+                <button onclick="openAddModal()" class="inline-flex items-center justify-center px-3 lg:px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors">
+                    <i class="fas fa-plus mr-1 lg:mr-2"></i>
+                    <span class="hidden sm:inline">Tambah Mortalitas</span>
+                    <span class="sm:hidden">Tambah</span>
                 </button>
             </div>
         </div>
 
-        <div class="overflow-x-auto">
+        <!-- Mobile Card View -->
+        <div class="block lg:hidden">
+            @forelse($mortalities as $mortality)
+            <hr><hr><hr>
+            <hr><hr><hr>
+            <div class="border-b border-gray-100 last:border-b-0 p-4 hover:bg-gray-50 transition-colors">
+                <div class="flex items-start justify-between mb-2">
+                    <div class="flex items-center space-x-2">
+                        <!-- Batch Image -->
+                        @if($mortality->batch_image_url)
+                            <img class="h-8 w-8 rounded-lg object-cover border border-gray-200 cursor-pointer"
+                                 src="{{ $mortality->batch_image_url }}"
+                                 alt="Batch #{{ $mortality->batch_id }}"
+                                 onclick="showImageModal('{{ $mortality->batch_image_url }}', 'Batch #{{ $mortality->batch_id }}')"
+                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                            <div class="h-8 w-8 rounded-lg bg-gray-100 border border-gray-200 items-center justify-center hidden">
+                                <i class="fas fa-fish text-gray-400 text-xs"></i>
+                            </div>
+                        @else
+                            <div class="h-8 w-8 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center">
+                                <i class="fas fa-fish text-gray-400 text-xs"></i>
+                            </div>
+                        @endif
+
+                        <div>
+                            <div class="text-sm font-medium text-gray-900">{{ $mortality->formatted_date }}</div>
+                            <div class="text-xs text-gray-500">Batch #{{ $mortality->batch_id }}</div>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center space-x-2">
+                        <button onclick="editMortality({{ $mortality->id }})" class="text-blue-600 hover:text-blue-900 p-1" title="Edit">
+                            <i class="fas fa-edit text-sm"></i>
+                        </button>
+                        <button onclick="deleteMortality({{ $mortality->id }}, '{{ $mortality->formatted_date }}')" class="text-red-600 hover:text-red-900 p-1" title="Hapus">
+                            <i class="fas fa-trash text-sm"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 text-sm">
+                    <div>
+                        <span class="text-gray-500">Kolam:</span>
+                        <div class="font-medium text-gray-900">{{ $mortality->pond_name }}</div>
+                    </div>
+                    <div>
+                        <span class="text-gray-500">Kematian:</span>
+                        <div class="font-medium text-red-600">{{ $mortality->formatted_dead_count }} ekor</div>
+                    </div>
+                    <div>
+                        <span class="text-gray-500">Tingkat:</span>
+                        <div class="font-medium">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium
+                                {{ $mortality->mortality_rate < 5 ? ' text-green-800' :
+                                   ($mortality->mortality_rate < 10 ? 'bg-yellow-100 text-yellow-800' : ' text-red-800') }}">
+                                {{ number_format($mortality->mortality_rate, 1) }}%
+                            </span>
+                        </div>
+                    </div>
+                    <div>
+                        <span class="text-gray-500">Umur:</span>
+                        <div class="font-medium text-gray-900">{{ $mortality->batch_age_days }}h</div>
+                    </div>
+                </div>
+
+                @if($mortality->short_cause)
+                <div class="mt-2 text-xs text-gray-600 bg-gray-50 rounded p-2">
+                    {{ $mortality->short_cause }}
+                </div>
+                @endif
+
+                <div class="mt-2 flex items-center justify-between">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                        {{ $mortality->fish_type_name }}
+                    </span>
+                    <div class="text-xs text-gray-400">
+                        Stok: {{ number_format($mortality->current_stock) }}
+                    </div>
+                </div>
+            </div>
+            @empty
+            <div class="p-8 text-center">
+                <i class="fas fa-skull-crossbones text-gray-300 text-3xl mb-3"></i>
+                <h3 class="text-base font-medium text-gray-900 mb-2">Belum ada catatan</h3>
+                <p class="text-sm text-gray-500 mb-4">Mulai dengan menambahkan catatan mortalitas.</p>
+                <button onclick="openAddModal()" class="inline-flex items-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors">
+                    <i class="fas fa-plus mr-2"></i>
+                    Tambah Sekarang
+                </button>
+            </div>
+            @endforelse
+        </div>
+
+        <!-- Desktop Table View -->
+        <div class="hidden lg:block overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
                     <tr>
@@ -89,6 +185,7 @@
                 <tbody class="bg-white divide-y divide-gray-200">
                     @forelse($mortalities as $mortality)
                     <tr class="hover:bg-gray-50 transition-colors">
+                        <!-- Tanggal -->
                         <td class="px-6 py-4">
                             <div class="text-sm font-medium text-gray-900">
                                 {{ \Carbon\Carbon::parse($mortality->date)->format('d M Y') }}
@@ -97,42 +194,63 @@
                                 {{ \Carbon\Carbon::parse($mortality->created_at)->format('H:i') }}
                             </div>
                         </td>
+
+                        <!-- Batch & Kolam -->
                         <td class="px-6 py-4">
-                            <div class="text-sm font-medium text-gray-900">Batch #{{ $mortality->batch_id }}</div>
-                            <div class="text-sm text-gray-500">{{ $mortality->pond_name }} ({{ $mortality->pond_code }})</div>
-                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 mt-1">
-                                {{ $mortality->fish_type_name }}
-                            </span>
+                            <div class="flex items-center space-x-3">
+                                <div class="flex-shrink-0">
+                                    @if($mortality->batch_image_url)
+                                        <img class="h-8 w-8 rounded-lg object-cover border border-gray-200 cursor-pointer"
+                                             src="{{ $mortality->batch_image_url }}"
+                                             alt="Batch #{{ $mortality->batch_id }}"
+                                             onclick="showImageModal('{{ $mortality->batch_image_url }}', 'Batch #{{ $mortality->batch_id }}')"
+                                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                        <div class="h-8 w-8 rounded-lg bg-gray-100 border border-gray-200 items-center justify-center hidden">
+                                            <i class="fas fa-fish text-gray-400 text-xs"></i>
+                                        </div>
+                                    @else
+                                        <div class="h-8 w-8 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center">
+                                            <i class="fas fa-fish text-gray-400 text-xs"></i>
+                                        </div>
+                                    @endif
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <div class="text-sm font-medium text-gray-900">Batch #{{ $mortality->batch_id }}</div>
+                                    <div class="text-sm text-gray-500">{{ $mortality->pond_name }} ({{ $mortality->pond_code }})</div>
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 mt-1">
+                                        {{ $mortality->fish_type_name }}
+                                    </span>
+                                </div>
+                            </div>
                         </td>
+
+                        <!-- Stok Sebelum -->
                         <td class="px-6 py-4">
                             <div class="text-sm text-gray-900">
                                 <span class="font-medium">{{ number_format($mortality->stock_before_mortality) }}</span> ekor
                             </div>
                             <div class="text-xs text-gray-500">
-                                Awal: {{ number_format($mortality->initial_count) }}
-                                @if($mortality->transferred_in > 0)
-                                <br><span class="text-green-600">+{{ number_format($mortality->transferred_in) }} transfer</span>
-                                @endif
-                                @if($mortality->transferred_out > 0)
-                                <br><span class="text-red-600">-{{ number_format($mortality->transferred_out) }} transfer</span>
-                                @endif
+                                Sisa: {{ number_format($mortality->current_stock) }}
                             </div>
                         </td>
+
+                        <!-- Kematian -->
                         <td class="px-6 py-4">
                             <div class="text-sm font-medium text-red-600">
                                 {{ number_format($mortality->dead_count) }} ekor
                             </div>
-                            <div class="text-xs text-gray-500">
-                                Sisa: {{ number_format($mortality->current_stock) }}
-                            </div>
                         </td>
+
+                        <!-- Tingkat -->
                         <td class="px-6 py-4">
                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                                {{ $mortality->mortality_rate < 5 ? 'bg-green-100 text-green-800' :
-                                   ($mortality->mortality_rate < 10 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800') }}">
+                                {{ $mortality->mortality_rate < 5 ? ' text-green-800' :
+                                   ($mortality->mortality_rate < 10 ? 'bg-yellow-100 text-yellow-800' : ' text-red-800') }}">
                                 {{ number_format($mortality->mortality_rate, 1) }}%
                             </span>
                         </td>
+
+                        <!-- Penyebab -->
                         <td class="px-6 py-4">
                             @if($mortality->cause)
                             <div class="text-sm text-gray-900">{{ Str::limit($mortality->cause, 30) }}</div>
@@ -140,10 +258,14 @@
                             <span class="text-xs text-gray-400">Tidak ada catatan</span>
                             @endif
                         </td>
+
+                        <!-- Umur Batch -->
                         <td class="px-6 py-4">
                             <div class="text-sm text-gray-900">{{ $mortality->batch_age_days }} hari</div>
                             <div class="text-xs text-gray-500">{{ floor($mortality->batch_age_days / 7) }} minggu</div>
                         </td>
+
+                        <!-- Aksi -->
                         <td class="px-6 py-4 text-right text-sm font-medium">
                             <div class="flex items-center justify-end space-x-2">
                                 <button onclick="editMortality({{ $mortality->id }})" class="text-blue-600 hover:text-blue-900 p-1" title="Edit">
@@ -173,16 +295,78 @@
                 </tbody>
             </table>
         </div>
+
+        <!-- Pagination -->
+        @if($pagination['total_pages'] > 1)
+        <div class="px-4 py-3 lg:px-6 lg:py-4 border-t border-gray-200">
+            <div class="flex flex-col sm:flex-row items-center justify-between space-y-3 sm:space-y-0">
+                <!-- Mobile Pagination Info -->
+                <div class="text-xs lg:text-sm text-gray-700 order-2 sm:order-1">
+                    Halaman {{ $pagination['current_page'] }} dari {{ $pagination['total_pages'] }}
+                    <span class="hidden sm:inline">({{ $pagination['total_items'] }} total)</span>
+                </div>
+
+                <!-- Pagination Controls -->
+                <div class="flex items-center space-x-2 order-1 sm:order-2">
+                    @if($pagination['has_prev'])
+                        <a href="?page={{ $pagination['prev_page'] }}"
+                           class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:text-gray-700 transition-colors">
+                            <i class="fas fa-chevron-left mr-1"></i>
+                            <span class="hidden sm:inline">Sebelumnya</span>
+                        </a>
+                    @endif
+
+                    <!-- Page Numbers (Desktop Only) -->
+                    <div class="hidden lg:flex items-center space-x-1">
+                        @php
+                            $start = max(1, $pagination['current_page'] - 2);
+                            $end = min($pagination['total_pages'], $pagination['current_page'] + 2);
+                        @endphp
+
+                        @if($start > 1)
+                            <a href="?page=1" class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">1</a>
+                            @if($start > 2)
+                                <span class="px-2 text-gray-500">...</span>
+                            @endif
+                        @endif
+
+                        @for($i = $start; $i <= $end; $i++)
+                            @if($i == $pagination['current_page'])
+                                <span class="px-3 py-2 text-sm font-medium text-white bg-red-600 border border-red-600 rounded-lg">{{ $i }}</span>
+                            @else
+                                <a href="?page={{ $i }}" class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">{{ $i }}</a>
+                            @endif
+                        @endfor
+
+                        @if($end < $pagination['total_pages'])
+                            @if($end < $pagination['total_pages'] - 1)
+                                <span class="px-2 text-gray-500">...</span>
+                            @endif
+                            <a href="?page={{ $pagination['total_pages'] }}" class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">{{ $pagination['total_pages'] }}</a>
+                        @endif
+                    </div>
+
+                    @if($pagination['has_next'])
+                        <a href="?page={{ $pagination['next_page'] }}"
+                           class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:text-gray-700 transition-colors">
+                            <span class="hidden sm:inline">Selanjutnya</span>
+                            <i class="fas fa-chevron-right ml-1"></i>
+                        </a>
+                    @endif
+                </div>
+            </div>
+        </div>
+        @endif
     </div>
 </div>
 
-<!-- Add/Edit Modal -->
+<!-- Add/Edit Modal - Mobile Optimized -->
 <div id="mortalityModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 hidden">
-    <div class="relative top-20 mx-auto p-5 border w-full max-w-lg shadow-lg rounded-lg bg-white">
+    <div class="relative top-4 lg:top-20 mx-auto p-4 lg:p-5 border w-full max-w-2xl shadow-lg rounded-lg bg-white m-4">
         <div class="mt-3">
             <div class="flex items-center justify-between mb-4">
-                <h3 id="modalTitle" class="text-lg font-medium text-gray-900">Tambah Mortalitas</h3>
-                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600">
+                <h3 id="modalTitle" class="text-base lg:text-lg font-medium text-gray-900">Tambah Mortalitas</h3>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 p-1">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -190,33 +374,93 @@
             <form id="mortalityForm" class="space-y-4">
                 <input type="hidden" id="mortalityId" name="id">
 
+                <!-- Custom Batch Dropdown - Mobile Optimized -->
                 <div>
-                    <label for="fish_batch_id" class="block text-sm font-medium text-gray-700 mb-1">Batch Ikan *</label>
-                    <select id="fish_batch_id" name="fish_batch_id" required onchange="updateStockInfo()"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                        <option value="">Pilih Batch Ikan</option>
-                        @foreach($fishBatches as $batch)
-                        <option value="{{ $batch->id }}">
-                            Batch #{{ $batch->id }} - {{ $batch->pond_name }} ({{ $batch->fish_type_name }})
-                        </option>
-                        @endforeach
-                    </select>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Batch Ikan *</label>
+                    <div class="relative">
+                        <select id="fish_batch_id" name="fish_batch_id" required class="hidden">
+                            <option value="">Pilih Batch Ikan</option>
+                            @foreach($fishBatches as $batch)
+                            <option value="{{ $batch->id }}">
+                                Batch #{{ $batch->id }} - {{ $batch->pond_name }} ({{ $batch->fish_type_name }})
+                            </option>
+                            @endforeach
+                        </select>
+
+                        <button type="button" id="batchDropdownBtn" onclick="toggleBatchDropdown()"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-white text-left flex items-center justify-between">
+                            <div class="flex items-center space-x-2 lg:space-x-3 min-w-0 flex-1">
+                                <div id="selectedBatchImage" class="hidden flex-shrink-0">
+                                    <img class="h-5 w-5 lg:h-6 lg:w-6 rounded object-cover border border-gray-200" src="" alt="">
+                                </div>
+                                <span id="selectedBatchText" class="text-gray-500 truncate">Pilih Batch Ikan</span>
+                            </div>
+                            <i id="batchDropdownIcon" class="fas fa-chevron-down text-gray-400 transition-transform duration-200 flex-shrink-0"></i>
+                        </button>
+
+                        <div id="batchDropdownMenu" class="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 lg:max-h-60 overflow-y-auto hidden">
+                            @foreach($fishBatches as $batch)
+                                <div class="batch-option px-3 py-2 lg:py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                                     data-value="{{ $batch->id }}"
+                                     data-batch-id="{{ $batch->id }}"
+                                     data-pond-name="{{ $batch->pond_name }}"
+                                     data-fish-type="{{ $batch->fish_type_name }}"
+                                     data-current-stock="{{ $batch->current_stock }}"
+                                     data-age-days="{{ $batch->age_days }}"
+                                     data-image="{{ $batch->image_url }}"
+                                     onclick="selectBatch(this)">
+                                    <div class="flex items-center space-x-2 lg:space-x-3">
+                                        <div class="flex-shrink-0">
+                                            @if($batch->image_url)
+                                                <img class="h-8 w-8 lg:h-10 lg:w-10 rounded-lg object-cover border border-gray-200"
+                                                     src="{{ $batch->image_url }}"
+                                                     alt="Batch #{{ $batch->id }}"
+                                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                                <div class="h-8 w-8 lg:h-10 lg:w-10 rounded-lg bg-gray-100 border border-gray-200 items-center justify-center hidden">
+                                                    <i class="fas fa-fish text-gray-400 text-sm"></i>
+                                                </div>
+                                            @else
+                                                <div class="h-8 w-8 lg:h-10 lg:w-10 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center">
+                                                    <i class="fas fa-fish text-gray-400 text-sm"></i>
+                                                </div>
+                                            @endif
+                                        </div>
+                                        <div class="flex-1 min-w-0">
+                                            <div class="flex items-center space-x-2">
+                                                <p class="text-sm font-medium text-gray-900">Batch #{{ $batch->id }}</p>
+                                                <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                                                    {{ number_format($batch->current_stock) }}
+                                                </span>
+                                            </div>
+                                            <p class="text-xs lg:text-sm text-gray-500 truncate">{{ $batch->pond_name }} ({{ $batch->pond_code }})</p>
+                                            <div class="flex items-center space-x-2 mt-1">
+                                                <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                                                    {{ $batch->fish_type_name }}
+                                                </span>
+                                                <span class="text-xs text-gray-500">{{ $batch->age_days }}h</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
                     <div id="stockInfo" class="text-xs text-gray-500 mt-1 hidden">
                         Stok saat ini: <span id="currentStock">0</span> ekor
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
                     <div>
                         <label for="date" class="block text-sm font-medium text-gray-700 mb-1">Tanggal *</label>
                         <input type="date" id="date" name="date" required max="{{ date('Y-m-d') }}"
-                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
                     </div>
 
                     <div>
                         <label for="dead_count" class="block text-sm font-medium text-gray-700 mb-1">Jumlah Mati *</label>
                         <input type="number" id="dead_count" name="dead_count" required min="1"
-                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
                                placeholder="0">
                     </div>
                 </div>
@@ -224,17 +468,17 @@
                 <div>
                     <label for="cause" class="block text-sm font-medium text-gray-700 mb-1">Penyebab Kematian</label>
                     <textarea id="cause" name="cause" rows="3"
-                              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
                               placeholder="Jelaskan penyebab kematian (opsional)..."></textarea>
                 </div>
 
-                <div class="flex items-center justify-end space-x-3 pt-4">
+                <div class="flex flex-col-reverse sm:flex-row items-center justify-end space-y-reverse space-y-2 sm:space-y-0 sm:space-x-3 pt-4">
                     <button type="button" onclick="closeModal()"
-                            class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
+                            class="w-full sm:w-auto px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
                         Batal
                     </button>
                     <button type="submit" id="submitBtn"
-                            class="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors">
+                            class="w-full sm:w-auto px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors">
                         <span id="submitText">Simpan</span>
                         <i id="submitLoader" class="fas fa-spinner fa-spin ml-2 hidden"></i>
                     </button>
@@ -244,25 +488,25 @@
     </div>
 </div>
 
-<!-- Delete Confirmation Modal -->
+<!-- Delete Confirmation Modal - Mobile Optimized -->
 <div id="deleteModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 hidden">
-    <div class="relative top-20 mx-auto p-5 border w-full max-w-md shadow-lg rounded-lg bg-white">
+    <div class="relative top-20 mx-auto p-4 lg:p-5 border w-full max-w-md shadow-lg rounded-lg bg-white m-4">
         <div class="mt-3 text-center">
             <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
                 <i class="fas fa-exclamation-triangle text-red-600"></i>
             </div>
-            <h3 class="text-lg font-medium text-gray-900 mb-2">Hapus Data Mortalitas</h3>
+            <h3 class="text-base lg:text-lg font-medium text-gray-900 mb-2">Hapus Data Mortalitas</h3>
             <p class="text-sm text-gray-500 mb-4">
                 Apakah Anda yakin ingin menghapus data mortalitas tanggal <strong id="deleteMortalityDate"></strong>?
                 Tindakan ini tidak dapat dibatalkan.
             </p>
-            <div class="flex items-center justify-center space-x-3">
+            <div class="flex flex-col-reverse sm:flex-row items-center justify-center space-y-reverse space-y-2 sm:space-y-0 sm:space-x-3">
                 <button onclick="closeDeleteModal()"
-                        class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
+                        class="w-full sm:w-auto px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
                     Batal
                 </button>
                 <button onclick="confirmDelete()" id="deleteBtn"
-                        class="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors">
+                        class="w-full sm:w-auto px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors">
                     <span id="deleteText">Hapus</span>
                     <i id="deleteLoader" class="fas fa-spinner fa-spin ml-2 hidden"></i>
                 </button>
@@ -271,9 +515,105 @@
     </div>
 </div>
 
+<!-- Image Modal -->
+<div id="imageModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 hidden">
+    <div class="relative max-w-4xl max-h-full p-4">
+        <button onclick="closeImageModal()" class="absolute top-2 right-2 text-white hover:text-gray-300 z-10">
+            <i class="fas fa-times text-2xl"></i>
+        </button>
+        <img id="modalImage" src="" alt="" class="max-w-full max-h-full rounded-lg">
+        <div class="text-center mt-2">
+            <p id="modalImageTitle" class="text-white text-sm"></p>
+        </div>
+    </div>
+</div>
+
 <script>
 let currentMortalityId = null;
 let deleteId = null;
+
+// Batch Dropdown Functions
+function toggleBatchDropdown() {
+    const menu = document.getElementById('batchDropdownMenu');
+    const icon = document.getElementById('batchDropdownIcon');
+
+    if (menu.classList.contains('hidden')) {
+        menu.classList.remove('hidden');
+        icon.classList.add('rotate-180');
+    } else {
+        menu.classList.add('hidden');
+        icon.classList.remove('rotate-180');
+    }
+}
+
+function selectBatch(element) {
+    const batchId = element.dataset.value;
+    const batchIdNum = element.dataset.batchId;
+    const pondName = element.dataset.pondName;
+    const fishType = element.dataset.fishType;
+    const currentStock = element.dataset.currentStock;
+    const ageDays = element.dataset.ageDays;
+    const imageUrl = element.dataset.image;
+
+    // Update hidden select
+    document.getElementById('fish_batch_id').value = batchId;
+
+    // Update display
+    const selectedText = document.getElementById('selectedBatchText');
+    const selectedImage = document.getElementById('selectedBatchImage');
+    const stockInfo = document.getElementById('stockInfo');
+
+    selectedText.textContent = `Batch #${batchIdNum} - ${pondName} (${fishType})`;
+    selectedText.classList.remove('text-gray-500');
+    selectedText.classList.add('text-gray-900');
+
+    // Update image
+    if (imageUrl && imageUrl !== 'null') {
+        selectedImage.querySelector('img').src = imageUrl;
+        selectedImage.classList.remove('hidden');
+    } else {
+        selectedImage.classList.add('hidden');
+    }
+
+    // Update stock info
+    document.getElementById('currentStock').textContent = new Intl.NumberFormat().format(currentStock);
+    stockInfo.classList.remove('hidden');
+
+    // Update max value for dead_count input
+    document.getElementById('dead_count').max = currentStock;
+
+    if (currentStock == 0) {
+        document.getElementById('currentStock').innerHTML = '<span class="text-red-600">0 (Tidak ada stok)</span>';
+    }
+
+    // Close dropdown
+    document.getElementById('batchDropdownMenu').classList.add('hidden');
+    document.getElementById('batchDropdownIcon').classList.remove('rotate-180');
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', function(event) {
+    const dropdown = document.getElementById('batchDropdownMenu');
+    const button = document.getElementById('batchDropdownBtn');
+
+    if (!dropdown.contains(event.target) && !button.contains(event.target)) {
+        dropdown.classList.add('hidden');
+        document.getElementById('batchDropdownIcon').classList.remove('rotate-180');
+    }
+});
+
+// Image Modal Functions
+function showImageModal(src, title) {
+    document.getElementById('modalImage').src = src;
+    document.getElementById('modalImageTitle').textContent = title;
+    document.getElementById('imageModal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden'; // Prevent background scroll
+}
+
+function closeImageModal() {
+    document.getElementById('imageModal').classList.add('hidden');
+    document.body.style.overflow = 'auto'; // Restore scroll
+}
 
 // Modal functions
 function openAddModal() {
@@ -281,56 +621,40 @@ function openAddModal() {
     document.getElementById('submitText').textContent = 'Simpan';
     document.getElementById('mortalityForm').reset();
     document.getElementById('mortalityId').value = '';
-    document.getElementById('stockInfo').classList.add('hidden');
     currentMortalityId = null;
+
+    // Reset batch dropdown
+    resetBatchDropdown();
+
     document.getElementById('mortalityModal').classList.remove('hidden');
-    document.getElementById('fish_batch_id').focus();
+    document.body.style.overflow = 'hidden'; // Prevent background scroll
+
+    // Focus on date field after a short delay to ensure modal is visible
+    setTimeout(() => {
+        document.getElementById('date').focus();
+    }, 100);
 }
 
 function closeModal() {
     document.getElementById('mortalityModal').classList.add('hidden');
+    document.body.style.overflow = 'auto'; // Restore scroll
 }
 
 function closeDeleteModal() {
     document.getElementById('deleteModal').classList.add('hidden');
+    document.body.style.overflow = 'auto'; // Restore scroll
     deleteId = null;
 }
 
-// Update stock info when batch is selected
-function updateStockInfo() {
-    const batchId = document.getElementById('fish_batch_id').value;
-    const stockInfo = document.getElementById('stockInfo');
-    const currentStockSpan = document.getElementById('currentStock');
-
-    if (!batchId) {
-        stockInfo.classList.add('hidden');
-        return;
-    }
-
-    // Show loading
-    currentStockSpan.textContent = 'Loading...';
-    stockInfo.classList.remove('hidden');
-
-    fetch(`/mortalities/batch-stock/${batchId}`)
-        .then(response => response.json())
-        .then(result => {
-            if (result.success) {
-                currentStockSpan.textContent = new Intl.NumberFormat().format(result.current_stock);
-
-                // Update max value for dead_count input
-                document.getElementById('dead_count').max = result.current_stock;
-
-                if (result.current_stock === 0) {
-                    currentStockSpan.innerHTML = '<span class="text-red-600">0 (Tidak ada stok)</span>';
-                }
-            } else {
-                currentStockSpan.textContent = 'Error';
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            currentStockSpan.textContent = 'Error';
-        });
+function resetBatchDropdown() {
+    document.getElementById('fish_batch_id').value = '';
+    document.getElementById('selectedBatchText').textContent = 'Pilih Batch Ikan';
+    document.getElementById('selectedBatchText').classList.add('text-gray-500');
+    document.getElementById('selectedBatchText').classList.remove('text-gray-900');
+    document.getElementById('selectedBatchImage').classList.add('hidden');
+    document.getElementById('stockInfo').classList.add('hidden');
+    document.getElementById('batchDropdownMenu').classList.add('hidden');
+    document.getElementById('batchDropdownIcon').classList.remove('rotate-180');
 }
 
 // CRUD functions
@@ -340,21 +664,31 @@ function editMortality(id) {
     document.getElementById('submitText').textContent = 'Perbarui';
 
     document.getElementById('mortalityModal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+
+        // Show loading state
+        const form = document.getElementById('mortalityForm');
+    form.style.opacity = '0.6';
 
     fetch(`/mortalities/${id}`)
         .then(response => response.json())
         .then(result => {
             if (result.success) {
-                document.getElementById('mortalityId').value = result.data.id;
-                document.getElementById('fish_batch_id').value = result.data.fish_batch_id;
-                document.getElementById('date').value = result.data.date;
-                document.getElementById('dead_count').value = result.data.dead_count;
-                document.getElementById('cause').value = result.data.cause || '';
+                const data = result.data;
+                document.getElementById('mortalityId').value = data.id;
+                document.getElementById('fish_batch_id').value = data.fish_batch_id;
+                document.getElementById('date').value = data.date;
+                document.getElementById('dead_count').value = data.dead_count;
+                document.getElementById('cause').value = data.cause || '';
 
-                // Update stock info
-                updateStockInfo();
+                // Update batch dropdown display
+                const selectedBatch = document.querySelector(`[data-value="${data.fish_batch_id}"]`);
+                if (selectedBatch) {
+                    selectBatch(selectedBatch);
+                }
 
-                document.getElementById('fish_batch_id').focus();
+                form.style.opacity = '1';
+                document.getElementById('date').focus();
             } else {
                 showNotification('Error: ' + result.message, 'error');
                 closeModal();
@@ -364,6 +698,9 @@ function editMortality(id) {
             console.error('Error:', error);
             showNotification('Gagal memuat data mortalitas', 'error');
             closeModal();
+        })
+        .finally(() => {
+            form.style.opacity = '1';
         });
 }
 
@@ -371,6 +708,7 @@ function deleteMortality(id, date) {
     deleteId = id;
     document.getElementById('deleteMortalityDate').textContent = date;
     document.getElementById('deleteModal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
 }
 
 function confirmDelete() {
@@ -423,6 +761,12 @@ document.getElementById('mortalityForm').addEventListener('submit', function(e) 
     const formData = new FormData(this);
     const isEdit = currentMortalityId !== null;
 
+    // Validate batch selection
+    if (!formData.get('fish_batch_id')) {
+        showNotification('Silakan pilih batch ikan terlebih dahulu', 'error');
+        return;
+    }
+
     submitText.textContent = isEdit ? 'Memperbarui...' : 'Menyimpan...';
     submitLoader.classList.remove('hidden');
     submitBtn.disabled = true;
@@ -469,30 +813,30 @@ document.getElementById('mortalityForm').addEventListener('submit', function(e) 
     });
 });
 
-// Notification function
+// Notification function - Mobile optimized
 function showNotification(message, type = 'info') {
     const notification = document.createElement('div');
-    notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg max-w-sm transform transition-all duration-300 translate-x-full`;
+    notification.className = `fixed top-4 left-4 right-4 sm:top-4 sm:right-4 sm:left-auto z-50 p-3 sm:p-4 rounded-lg shadow-lg sm:max-w-sm transform transition-all duration-300 translate-y-[-100px] sm:translate-y-0 sm:translate-x-full`;
 
     if (type === 'success') {
         notification.classList.add('bg-green-500', 'text-white');
-        notification.innerHTML = `<i class="fas fa-check-circle mr-2"></i>${message}`;
+        notification.innerHTML = `<div class="flex items-center"><i class="fas fa-check-circle mr-2 flex-shrink-0"></i><span class="flex-1">${message}</span></div>`;
     } else if (type === 'error') {
         notification.classList.add('bg-red-500', 'text-white');
-        notification.innerHTML = `<i class="fas fa-exclamation-circle mr-2"></i>${message}`;
+        notification.innerHTML = `<div class="flex items-center"><i class="fas fa-exclamation-circle mr-2 flex-shrink-0"></i><span class="flex-1">${message}</span></div>`;
     } else {
         notification.classList.add('bg-blue-500', 'text-white');
-        notification.innerHTML = `<i class="fas fa-info-circle mr-2"></i>${message}`;
+        notification.innerHTML = `<div class="flex items-center"><i class="fas fa-info-circle mr-2 flex-shrink-0"></i><span class="flex-1">${message}</span></div>`;
     }
 
     document.body.appendChild(notification);
 
     setTimeout(() => {
-        notification.classList.remove('translate-x-full');
+        notification.classList.remove('translate-y-[-100px]', 'sm:translate-x-full');
     }, 100);
 
     setTimeout(() => {
-        notification.classList.add('translate-x-full');
+        notification.classList.add('translate-y-[-100px]', 'sm:translate-x-full');
         setTimeout(() => {
             if (notification.parentNode) {
                 notification.parentNode.removeChild(notification);
@@ -506,6 +850,7 @@ document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
         closeModal();
         closeDeleteModal();
+        closeImageModal();
     }
 });
 
@@ -522,6 +867,51 @@ document.getElementById('deleteModal').addEventListener('click', function(e) {
     }
 });
 
+document.getElementById('imageModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeImageModal();
+    }
+});
+
+// Handle window resize for responsive behavior
+window.addEventListener('resize', function() {
+    // Close dropdowns on resize to prevent positioning issues
+    const dropdown = document.getElementById('batchDropdownMenu');
+    if (!dropdown.classList.contains('hidden')) {
+        dropdown.classList.add('hidden');
+        document.getElementById('batchDropdownIcon').classList.remove('rotate-180');
+    }
+});
+
+// Prevent zoom on iOS when focusing inputs
+if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+    const inputs = document.querySelectorAll('input, select, textarea');
+    inputs.forEach(input => {
+        input.addEventListener('focus', function() {
+            input.style.fontSize = '16px';
+        });
+        input.addEventListener('blur', function() {
+            input.style.fontSize = '';
+        });
+    });
+}
+
+// Auto-hide mobile keyboard when scrolling
+let lastScrollTop = 0;
+window.addEventListener('scroll', function() {
+    const currentScrollTop = window.pageYOffset || document.documentElement.scrollTop;
+
+    if (currentScrollTop > lastScrollTop) {
+        // Scrolling down - blur active input to hide keyboard
+        const activeElement = document.activeElement;
+        if (activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA')) {
+            activeElement.blur();
+        }
+    }
+
+    lastScrollTop = currentScrollTop <= 0 ? 0 : currentScrollTop;
+}, false);
+
 // Validate dead count doesn't exceed current stock
 document.getElementById('dead_count').addEventListener('input', function() {
     const maxStock = parseInt(this.max);
@@ -533,5 +923,166 @@ document.getElementById('dead_count').addEventListener('input', function() {
         this.setCustomValidity('');
     }
 });
+
+// Initialize page
+document.addEventListener('DOMContentLoaded', function() {
+    // Set default date to today
+    const dateInput = document.getElementById('date');
+    if (dateInput && !dateInput.value) {
+        dateInput.value = new Date().toISOString().split('T')[0];
+    }
+
+    // Add loading states to pagination links
+    const paginationLinks = document.querySelectorAll('a[href*="page="]');
+    paginationLinks.forEach(link => {
+        link.addEventListener('click', function() {
+            this.style.opacity = '0.6';
+            this.style.pointerEvents = 'none';
+        });
+    });
+});
 </script>
+
+<!-- Custom CSS for mobile optimization -->
+<style>
+/* Mobile-specific styles */
+@media (max-width: 640px) {
+    /* Ensure modals are properly sized on mobile */
+    #mortalityModal > div,
+    #deleteModal > div {
+        margin: 1rem;
+        max-height: calc(100vh - 2rem);
+        overflow-y: auto;
+    }
+
+    /* Improve touch targets */
+    button, .batch-option {
+        min-height: 44px;
+    }
+
+    /* Better spacing for mobile cards */
+    .mobile-card {
+        padding: 1rem;
+        margin-bottom: 0.5rem;
+    }
+
+    /* Prevent horizontal scroll */
+    body {
+        overflow-x: hidden;
+    }
+
+    /* Improve dropdown positioning on mobile */
+    #batchDropdownMenu {
+        position: fixed;
+        top: auto;
+        left: 1rem;
+        right: 1rem;
+        width: auto;
+        max-height: 50vh;
+        z-index: 60;
+    }
+
+    /* Better notification positioning */
+    .notification-mobile {
+        left: 1rem;
+        right: 1rem;
+        width: auto;
+    }
+}
+
+/* Loading animation */
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+.loading {
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* Smooth transitions */
+.transition-all {
+    transition: all 0.3s ease;
+}
+
+/* Custom scrollbar for dropdown */
+#batchDropdownMenu::-webkit-scrollbar {
+    width: 4px;
+}
+
+#batchDropdownMenu::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 2px;
+}
+
+#batchDropdownMenu::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 2px;
+}
+
+#batchDropdownMenu::-webkit-scrollbar-thumb:hover {
+    background: #a1a1a1;
+}
+
+/* Improve focus states for accessibility */
+input:focus, select:focus, textarea:focus, button:focus {
+    outline: 2px solid #dc2626;
+    outline-offset: 2px;
+}
+
+/* Better hover states on touch devices */
+@media (hover: hover) {
+    .hover\:bg-gray-50:hover {
+        background-color: #f9fafb;
+    }
+
+    .hover\:text-blue-900:hover {
+        color: #1e3a8a;
+    }
+
+    .hover\:text-red-900:hover {
+        color: #7f1d1d;
+    }
+}
+
+/* Prevent text selection on buttons */
+button {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+/* Improve image loading */
+img {
+    loading: lazy;
+}
+
+/* Better spacing for mobile stats */
+@media (max-width: 640px) {
+    .stats-grid {
+        gap: 0.75rem;
+    }
+
+    .stats-card {
+        padding: 0.75rem;
+    }
+}
+
+/* Mortality rate color indicators */
+.mortality-rate-low {
+    background-color: #dcfce7;
+    color: #166534;
+}
+
+.mortality-rate-medium {
+    background-color: #fef3c7;
+    color: #92400e;
+}
+
+.mortality-rate-high {
+    background-color: #fee2e2;
+    color: #991b1b;
+}
+</style>
 @endsection

@@ -52,4 +52,9 @@ class Mortality extends Model
         if ($percentage <= 10) return 'high';
         return 'critical';
     }
+
+    public function createdBy()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
 }

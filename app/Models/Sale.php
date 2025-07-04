@@ -68,4 +68,9 @@ class Sale extends Model
         if ($weightInGram < 500) return 'consumption';
         return 'premium';
     }
+
+    public function createdBy()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
 }

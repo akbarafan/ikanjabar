@@ -1,416 +1,442 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Controller;
 use App\Models\Branch;
 use App\Models\Pond;
 use App\Models\FishBatch;
-use App\Models\FishStockSnapshot;
-use App\Models\FishType;
 use App\Models\WaterQuality;
 use App\Models\Sale;
-use App\Models\Mortality;
 use App\Models\Feeding;
-use App\Models\User;
+use App\Models\Mortality;
+use App\Models\FishType;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
 class BranchDetailController extends Controller
 {
-    public function show(Branch $branch)
+    public function show(Branch $branch, Request $request)
     {
-        // Get branch with relationships
-        $branch->load(['ponds', 'users']);
-        
-        // Branch info
-        $branchInfo = $branch;
-        
-        // Calculate statistics
-        $totalPonds = $branch->ponds->count();
-        
-        // Hitung total fish dari fish_stock_snapshots terbaru
-        $totalFish = $this->calculateTotalFish($branch);
-        
-        // Monthly revenue
-        $monthlyRevenue = $this->calculateMonthlyRevenue($branch);
-        
-        // Fish types count - dari tabel fish_types
-        $totalFishTypes = FishType::where('branch_id', $branch->id)->count();
-        
-        // Pond stock details
-        $pondStockDetails = $this->getPondStockDetails($branch);
-        
-        // Pond status (water quality)
-        $pondsStatus = $this->getPondsStatus($branch);
-        
-        // Water quality trend (7 days)
+        $selectedPeriod = $request->get('period', '1month');
+
+        // Get branch statistics
+        $statistics = $this->getBranchStatistics($branch);
+
+        // Get chart data
         $waterQualityTrend = $this->getWaterQualityTrend($branch);
-        
-        // Fish sales analysis
-        $fishSalesAnalysis = $this->getFishSalesAnalysis($branch);
-        
-        // Performance metrics
-        $survivalRate = $this->calculateSurvivalRate($branch);
-        $averageFCR = $this->calculateAverageFCR($branch);
-        
-        // Harvest predictions
+        $productionDistribution = $this->getProductionDistribution($branch);
+        $fishSalesAnalysis = $this->getFishSalesAnalysis($branch, $selectedPeriod);
+
+        // Get detailed information
+        $pondStockDetails = $this->getPondStockDetails($branch);
         $harvestPredictions = $this->getHarvestPredictions($branch);
-        
-        // Recent alerts
         $recentAlerts = $this->getRecentAlerts($branch);
-        
-        // Pond options for filter
-        $pondOptions = $branch->ponds->map(function($pond) {
-            return [
-                'id' => $pond->id,
-                'name' => $pond->name
-            ];
-        })->toArray();
-        
-        // Selected filters (from request)
-        $selectedPondId = request('pond_id');
-        $selectedPeriod = request('period', '1month');
-        
-        return view('admin.branches.show', compact(
-            'branch',
-            'branchInfo',
-            'totalPonds',
-            'totalFish',
-            'monthlyRevenue',
-            'totalFishTypes',
-            'pondStockDetails',
-            'pondsStatus',
-            'waterQualityTrend',
-            'fishSalesAnalysis',
-            'survivalRate',
-            'averageFCR',
-            'harvestPredictions',
-            'recentAlerts',
-            'pondOptions',
-            'selectedPondId',
-            'selectedPeriod'
-        ));
+
+        return view('admin.branches.show', array_merge($statistics, [
+            'branch' => $branch,
+            'selectedPeriod' => $selectedPeriod,
+            'waterQualityTrend' => $waterQualityTrend,
+            'productionDistribution' => $productionDistribution,
+            'fishSalesAnalysis' => $fishSalesAnalysis,
+            'pondStockDetails' => $pondStockDetails,
+            'harvestPredictions' => $harvestPredictions,
+            'recentAlerts' => $recentAlerts
+        ]));
     }
-    
-    private function calculateTotalFish($branch)
+
+    public function getChartData(Branch $branch, Request $request)
     {
-        $totalStock = 0;
-        
-        // Ambil semua batch aktif dari ponds di branch ini
-        $activeBatches = FishBatch::whereHas('pond', function($query) use ($branch) {
-            $query->where('branch_id', $branch->id);
-        })->whereNull('deleted_at')->get();
-        
-        foreach ($activeBatches as $batch) {
-            // Ambil snapshot terbaru untuk setiap batch
-            $latestSnapshot = FishStockSnapshot::where('fish_batch_id', $batch->id)
-                ->latest('created_at')
-                ->first();
-            
-            if ($latestSnapshot) {
-                $totalStock += $latestSnapshot->current_stock;
-            } else {
-                // Fallback ke initial_count jika tidak ada snapshot
-                $totalStock += $batch->initial_count;
-            }
+        $type = $request->get('type');
+        $period = $request->get('period', '1month');
+
+        switch ($type) {
+            case 'sales':
+                $data = $this->getFishSalesAnalysis($branch, $period);
+                return response()->json([
+                    'success' => true,
+                    'chart_data' => $data['chart_data'],
+                    'summary' => $data['summary']
+                ]);
+
+            case 'water_quality':
+                $data = $this->getWaterQualityTrend($branch, $period);
+                return response()->json([
+                    'success' => true,
+                    'chart_data' => $data
+                ]);
+
+            case 'production':
+                $data = $this->getProductionDistribution($branch, $period);
+                return response()->json([
+                    'success' => true,
+                    'chart_data' => $data
+                ]);
+
+            default:
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid chart type'
+                ], 400);
         }
-        
-        return $totalStock;
     }
-    
-    private function calculateMonthlyRevenue($branch)
+
+    private function getBranchStatistics(Branch $branch)
     {
-        $currentMonth = Sale::whereHas('fishBatch.pond', function($query) use ($branch) {
+        // Get ponds with their batches
+        $ponds = $branch->ponds()->with(['fishBatches' => function($query) {
+            $query->where('status', 'active');
+        }])->get();
+
+        $totalPonds = $ponds->count();
+        $totalActiveBatches = $ponds->pluck('fishBatches')->flatten()->count();
+
+        // Calculate total fish stock
+        $totalFishStock = $ponds->pluck('fishBatches')->flatten()->sum('current_stock');
+
+        // Get feed usage (last 30 days)
+        $totalFeedUsed = Feeding::whereHas('fishBatch.pond', function($query) use ($branch) {
             $query->where('branch_id', $branch->id);
         })
-        ->whereMonth('date', Carbon::now()->month)
-        ->whereYear('date', Carbon::now()->year)
-        ->whereNull('deleted_at')
-        ->sum('total_price') ?? 0;
-        
-        $previousMonth = Sale::whereHas('fishBatch.pond', function($query) use ($branch) {
+        ->where('created_at', '>=', Carbon::now()->subDays(30))
+        ->sum('amount_kg');
+
+        // Get sales data (last 30 days)
+        $salesData = Sale::whereHas('fishBatch.pond', function($query) use ($branch) {
             $query->where('branch_id', $branch->id);
         })
-        ->whereMonth('date', Carbon::now()->subMonth()->month)
-        ->whereYear('date', Carbon::now()->subMonth()->year)
-        ->whereNull('deleted_at')
-        ->sum('total_price') ?? 0;
-        
-        $growth = $previousMonth > 0 ? (($currentMonth - $previousMonth) / $previousMonth) * 100 : 0;
-        
+        ->where('created_at', '>=', Carbon::now()->subDays(30))
+        ->selectRaw('SUM(weight_kg) as total_weight, SUM(total_price) as total_revenue')
+        ->first();
+
+        $totalSalesWeight = $salesData->total_weight ?? 0;
+        $totalSalesRevenue = $salesData->total_revenue ?? 0;
+
+        // Get fish types count
+        $totalFishTypes = FishBatch::whereHas('pond', function($query) use ($branch) {
+            $query->where('branch_id', $branch->id);
+        })
+        ->where('status', 'active')
+        ->distinct('fish_type_id')
+        ->count();
+
         return [
-            'total' => $currentMonth,
-            'formatted' => 'Rp ' . number_format($currentMonth, 0, ',', '.'),
-            'growth' => round($growth, 1)
+            'totalPonds' => $totalPonds,
+            'totalActiveBatches' => $totalActiveBatches,
+            'totalFishStock' => $totalFishStock,
+            'totalFeedUsed' => $totalFeedUsed,
+            'totalSalesWeight' => $totalSalesWeight,
+            'totalSalesRevenue' => $totalSalesRevenue,
+            'totalFishTypes' => $totalFishTypes
         ];
     }
-    
-    private function getPondStockDetails($branch)
+
+    private function getWaterQualityTrend(Branch $branch, $period = '7days')
     {
-        return $branch->ponds()->with(['fishBatches' => function($query) {
-            $query->whereNull('deleted_at');
-        }])->get()->map(function($pond) {
-            $activeBatch = $pond->fishBatches->first();
-            
-            if ($activeBatch) {
-                // Ambil snapshot terbaru
-                $latestSnapshot = FishStockSnapshot::where('fish_batch_id', $activeBatch->id)
-                    ->latest('created_at')
-                    ->first();
-                
-                $currentStock = $latestSnapshot ? $latestSnapshot->current_stock : $activeBatch->initial_count;
-                
-                // Hitung total mati dari tabel mortalities
-                $totalDead = Mortality::where('fish_batch_id', $activeBatch->id)
-                    ->whereNull('deleted_at')
-                    ->sum('dead_count');
-                
-                // Hitung total terjual dari tabel sales
-                $totalSold = Sale::where('fish_batch_id', $activeBatch->id)
-                    ->whereNull('deleted_at')
-                    ->sum('quantity_fish');
-                
-                // Ambil nama jenis ikan dari tabel fish_types
-                $fishType = FishType::find($activeBatch->fish_type_id)->name ?? 'Unknown';
-                
-                // Hitung transfer (simplified - bisa dikembangkan lebih lanjut)
-                $transferredIn = DB::table('fish_batch_transfers')
-                    ->where('target_batch_id', $activeBatch->id)
-                    ->whereNull('deleted_at')
-                    ->sum('transferred_count');
-                
-                $transferredOut = DB::table('fish_batch_transfers')
-                    ->where('source_batch_id', $activeBatch->id)
-                    ->whereNull('deleted_at')
-                    ->sum('transferred_count');
-            } else {
-                $currentStock = 0;
-                $totalDead = 0;
-                $totalSold = 0;
-                $fishType = null;
-                $transferredIn = 0;
-                $transferredOut = 0;
-            }
-            
-            return (object)[
-                'pond_name' => $pond->name,
-                'pond_code' => $pond->code,
-                'pond_type' => $pond->type,
-                'volume_liters' => $pond->volume_liters,
-                'fish_type' => $fishType,
-                'current_stock' => $currentStock,
-                'total_dead' => $totalDead,
-                'total_sold' => $totalSold,
-                'transferred_in' => $transferredIn,
-                'transferred_out' => $transferredOut,
-            ];
+        $days = $this->getPeriodDays($period);
+        $startDate = Carbon::now()->subDays($days);
+
+        $waterQualities = WaterQuality::whereHas('pond', function($query) use ($branch) {
+            $query->where('branch_id', $branch->id);
+        })
+        ->where('created_at', '>=', $startDate)
+        ->orderBy('created_at')
+        ->get()
+        ->groupBy(function($item) {
+            return $item->created_at->format('Y-m-d');
         });
-    }
-    
-    private function getPondsStatus($branch)
-    {
-        return $branch->ponds()->get()->map(function($pond) {
-            // Ambil kualitas air terbaru berdasarkan date_recorded
-            $waterQuality = WaterQuality::where('pond_id', $pond->id)
-                ->whereNull('deleted_at')
-                ->orderBy('date_recorded', 'desc')
-                ->first();
-            
-            $status = 'healthy';
-            if ($waterQuality) {
-                if ($waterQuality->temperature_c > 32 || $waterQuality->ph < 6.5 || $waterQuality->ph > 8.5 || 
-                    $waterQuality->do_mg_l < 4 || ($waterQuality->ammonia_mg_l && $waterQuality->ammonia_mg_l > 0.5)) {
-                    $status = 'danger';
-                } elseif ($waterQuality->temperature_c > 30 || $waterQuality->ph < 7 || $waterQuality->ph > 8 || 
-                         $waterQuality->do_mg_l < 5 || ($waterQuality->ammonia_mg_l && $waterQuality->ammonia_mg_l > 0.25)) {
-                    $status = 'warning';
-                }
-            }
-            
-            return [
-                'name' => $pond->name,
-                'status' => $status,
-                'temperature' => $waterQuality->temperature_c ?? 'N/A',
-                'ph' => $waterQuality->ph ?? 'N/A',
-                'do' => $waterQuality->do_mg_l ?? 'N/A',
-                'ammonia' => $waterQuality->ammonia_mg_l ?? 'N/A',
-            ];
-        })->toArray();
-    }
-    
-    private function getWaterQualityTrend($branch)
-    {
-        $days = collect(range(6, 0))->map(function($daysAgo) {
-            return Carbon::now()->subDays($daysAgo);
-        });
-        
-        $labels = $days->map(function($date) {
-            return $date->format('d/m');
-        })->toArray();
-        
+
+        $labels = [];
         $temperature = [];
         $ph = [];
         $do = [];
-        $ammonia = [];
-        
-        foreach ($days as $date) {
-            $dayData = WaterQuality::whereHas('pond', function($query) use ($branch) {
-                $query->where('branch_id', $branch->id);
-            })
-            ->whereDate('date_recorded', $date)
-            ->whereNull('deleted_at')
-            ->selectRaw('AVG(temperature_c) as avg_temp, AVG(ph) as avg_ph, AVG(do_mg_l) as avg_do, AVG(ammonia_mg_l) as avg_ammonia')
-            ->first();
-            
-            $temperature[] = $dayData && $dayData->avg_temp ? round($dayData->avg_temp, 1) : 28;
-            $ph[] = $dayData && $dayData->avg_ph ? round($dayData->avg_ph, 1) : 7.0;
-            $do[] = $dayData && $dayData->avg_do ? round($dayData->avg_do, 1) : 6.0;
-            $ammonia[] = $dayData && $dayData->avg_ammonia ? round($dayData->avg_ammonia, 2) : 0.1;
+
+        for ($i = $days - 1; $i >= 0; $i--) {
+            $date = Carbon::now()->subDays($i);
+            $dateKey = $date->format('Y-m-d');
+            $labels[] = $date->format('M d');
+
+            if (isset($waterQualities[$dateKey])) {
+                $dayData = $waterQualities[$dateKey];
+                $temperature[] = round($dayData->avg('temperature_c'), 1);
+                $ph[] = round($dayData->avg('ph'), 1);
+                $do[] = round($dayData->avg('do_mg_l'), 1);
+            } else {
+                $temperature[] = null;
+                $ph[] = null;
+                $do[] = null;
+            }
         }
-        
+
         return [
             'labels' => $labels,
             'temperature' => $temperature,
             'ph' => $ph,
-            'do' => $do,
-            'ammonia' => $ammonia
+            'do' => $do
         ];
     }
-    
-    private function getFishSalesAnalysis($branch)
+
+    private function getProductionDistribution(Branch $branch, $period = '1month')
     {
+        $days = $this->getPeriodDays($period);
+        $startDate = Carbon::now()->subDays($days);
+
+        $production = FishBatch::whereHas('pond', function($query) use ($branch) {
+            $query->where('branch_id', $branch->id);
+        })
+        ->with('fishType')
+        ->where('status', 'active')
+        ->get()
+        ->groupBy('fish_type_id')
+        ->map(function($batches) {
+            return [
+                'name' => $batches->first()->fishType->name,
+                'stock' => $batches->sum('current_stock')
+            ];
+        });
+
+        return [
+            'labels' => $production->pluck('name')->toArray(),
+            'data' => $production->pluck('stock')->toArray()
+        ];
+    }
+
+    private function getFishSalesAnalysis(Branch $branch, $period = '1month')
+    {
+        $days = $this->getPeriodDays($period);
+        $startDate = Carbon::now()->subDays($days);
+
+        // Get sales data
         $sales = Sale::whereHas('fishBatch.pond', function($query) use ($branch) {
             $query->where('branch_id', $branch->id);
         })
-        ->with(['fishBatch.fishType'])
-        ->whereMonth('date', Carbon::now()->month)
-        ->whereNull('deleted_at')
+        ->where('created_at', '>=', $startDate)
+        ->orderBy('created_at')
         ->get();
-        
-        $topFishSales = $sales->groupBy(function($sale) {
-            return $sale->fishBatch->fishType->name ?? 'Unknown';
-        })
-        ->map(function($group, $fishType) {
-            return (object)[
-                'fish_name' => $fishType,
-                'total_quantity' => $group->sum('quantity_fish'),
-                'total_revenue' => $group->sum('total_price')
-            ];
-        })
-        ->sortByDesc('total_revenue')
-        ->values();
-        
+
+        // Calculate summary
+        $summary = [
+            'total_revenue' => $sales->sum('total_price'),
+            'total_weight' => $sales->sum('weight_kg'),
+            'total_transactions' => $sales->count(),
+            'avg_price_per_kg' => $sales->count() > 0 ? $sales->sum('total_price') / $sales->sum('weight_kg') : 0
+        ];
+
+        // Group by date for chart
+        $salesByDate = $sales->groupBy(function($item) use ($period) {
+            if (in_array($period, ['1week', '1month'])) {
+                return $item->created_at->format('Y-m-d');
+            } else {
+                return $item->created_at->format('Y-m');
+            }
+        });
+
+        $labels = [];
+        $revenues = [];
+        $weights = [];
+
+        if (in_array($period, ['1week', '1month'])) {
+            $daysToShow = $period == '1week' ? 7 : 30;
+            for ($i = $daysToShow - 1; $i >= 0; $i--) {
+                $date = Carbon::now()->subDays($i);
+                $dateKey = $date->format('Y-m-d');
+                $labels[] = $date->format('M d');
+
+                if (isset($salesByDate[$dateKey])) {
+                    $revenues[] = $salesByDate[$dateKey]->sum('total_price');
+                    $weights[] = $salesByDate[$dateKey]->sum('weight_kg');
+                } else {
+                    $revenues[] = 0;
+                    $weights[] = 0;
+                }
+            }
+        } else {
+            // For longer periods, group by month
+            $monthsToShow = $period == '3months' ? 3 : ($period == '6months' ? 6 : 12);
+            for ($i = $monthsToShow - 1; $i >= 0; $i--) {
+                $date = Carbon::now()->subMonths($i);
+                $dateKey = $date->format('Y-m');
+                $labels[] = $date->format('M Y');
+
+                if (isset($salesByDate[$dateKey])) {
+                    $revenues[] = $salesByDate[$dateKey]->sum('total_price');
+                    $weights[] = $salesByDate[$dateKey]->sum('weight_kg');
+                } else {
+                    $revenues[] = 0;
+                    $weights[] = 0;
+                }
+            }
+        }
+
         return [
-            'top_fish_sales' => $topFishSales,
+            'summary' => $summary,
             'chart_data' => [
-                'labels' => $topFishSales->take(5)->pluck('fish_name')->toArray(),
-                'revenues' => $topFishSales->take(5)->pluck('total_revenue')->toArray()
+                'labels' => $labels,
+                'revenues' => $revenues,
+                'weights' => $weights
             ]
         ];
     }
-    
-    private function calculateSurvivalRate($branch)
+
+    private function getPondStockDetails(Branch $branch)
     {
-        $batches = FishBatch::whereHas('pond', function($query) use ($branch) {
-            $query->where('branch_id', $branch->id);
-        })->whereNull('deleted_at')->get();
-        
-        $totalInitial = $batches->sum('initial_count');
-        $totalDead = Mortality::whereIn('fish_batch_id', $batches->pluck('id'))
-            ->whereNull('deleted_at')
-            ->sum('dead_count');
-        
-        return $totalInitial > 0 ? round((($totalInitial - $totalDead) / $totalInitial) * 100, 1) : 0;
+        return $branch->ponds()->with(['fishBatches' => function($query) {
+            $query->where('status', 'active')->with('fishType');
+        }])->get()->map(function($pond) {
+            $totalStock = $pond->fishBatches->sum('current_stock');
+            $capacity = $pond->capacity ?? 10000; // Default capacity
+
+            return [
+                'pond_name' => $pond->name,
+                'total_stock' => $totalStock,
+                'capacity' => $capacity,
+                'utilization' => $capacity > 0 ? ($totalStock / $capacity) * 100 : 0,
+                'batches' => $pond->fishBatches->map(function($batch) {
+                    return [
+                        'fish_type' => $batch->fishType->name,
+                        'current_stock' => $batch->current_stock,
+                        'status' => $this->getBatchStatus($batch)
+                    ];
+                })
+            ];
+        });
     }
-    
-    private function calculateAverageFCR($branch)
-    {
-        $batches = FishBatch::whereHas('pond', function($query) use ($branch) {
-            $query->where('branch_id', $branch->id);
-        })->whereNull('deleted_at')->get();
-        
-        $totalFCR = 0;
-        $count = 0;
-        
-        foreach ($batches as $batch) {
-            // Hitung FCR berdasarkan total pakan / total berat ikan yang dijual
-            $totalFeed = Feeding::where('fish_batch_id', $batch->id)
-                ->whereNull('deleted_at')
-                ->sum('feed_amount_kg');
-            
-            $totalWeight = Sale::where('fish_batch_id', $batch->id)
-                ->whereNull('deleted_at')
-                ->sum(DB::raw('quantity_fish * avg_weight_per_fish_kg'));
-            
-            if ($totalWeight > 0 && $totalFeed > 0) {
-                $fcr = $totalFeed / $totalWeight;
-                $totalFCR += $fcr;
-                $count++;
-            }
-        }
-        
-        return $count > 0 ? round($totalFCR / $count, 2) : 1.5;
-    }
-    
-    private function getHarvestPredictions($branch)
+
+    private function getHarvestPredictions(Branch $branch)
     {
         return FishBatch::whereHas('pond', function($query) use ($branch) {
             $query->where('branch_id', $branch->id);
         })
-        ->whereNull('deleted_at')
-        ->with(['pond', 'fishType'])
+        ->with('fishType')
+        ->where('status', 'active')
         ->get()
         ->map(function($batch) {
-            $daysFromStart = Carbon::parse($batch->date_start)->diffInDays(Carbon::now());
-            $estimatedHarvestDays = 90; // Assume 90 days cycle
-            $daysLeft = max(0, $estimatedHarvestDays - $daysFromStart);
-            
-            // Ambil stok terbaru
-            $latestSnapshot = FishStockSnapshot::where('fish_batch_id', $batch->id)
-                ->latest('created_at')
-                ->first();
-            
-            $currentStock = $latestSnapshot ? $latestSnapshot->current_stock : $batch->initial_count;
-            
+            $ageDays = $batch->created_at->diffInDays(now());
+            $harvestAge = $batch->fishType->harvest_age_days ?? 90;
+            $estimatedWeight = $batch->current_stock * ($batch->fishType->average_weight_gram ?? 500) / 1000;
+
             return [
-                'pond' => $batch->pond->name,
-                'fish_type' => $batch->fishType->name ?? 'Unknown',
-                'days_left' => $daysLeft,
-                'status' => $daysLeft <= 7 ? 'ready' : 'growing',
-                'estimated_weight' => round($currentStock * 0.3) // Assume 300g average
+                'fish_type' => $batch->fishType->name,
+                'current_stock' => $batch->current_stock,
+                'age_days' => $ageDays,
+                'harvest_age' => $harvestAge,
+                'status' => $ageDays >= $harvestAge ? 'ready' : 'growing',
+                'estimated_weight_kg' => number_format($estimatedWeight, 1),
+                'estimated_harvest_date' => $batch->created_at->addDays($harvestAge)->format('d M Y')
             ];
-        })
-        ->toArray();
+        });
     }
-    
-    private function getRecentAlerts($branch)
+
+    private function getRecentAlerts(Branch $branch)
     {
         $alerts = collect();
-        
-        // Check water quality alerts
-        $criticalWaterQuality = WaterQuality::whereHas('pond', function($query) use ($branch) {
+
+        // Water quality alerts
+        $badWaterQuality = WaterQuality::whereHas('pond', function($query) use ($branch) {
             $query->where('branch_id', $branch->id);
         })
-        ->where('date_recorded', '>=', Carbon::now()->subDays(1))
+        ->where('created_at', '>=', Carbon::now()->subDays(7))
         ->where(function($query) {
-            $query->where('temperature_c', '>', 32)
-                  ->orWhere('ph', '<', 6.5)
+            $query->where('ph', '<', 6.5)
                   ->orWhere('ph', '>', 8.5)
                   ->orWhere('do_mg_l', '<', 4)
-                  ->orWhere('ammonia_mg_l', '>', 0.5);
+                  ->orWhere('temperature_c', '>', 32);
         })
-        ->whereNull('deleted_at')
-        ->with('pond')
+        ->latest()
+        ->take(5)
         ->get();
-        
-        foreach ($criticalWaterQuality as $wq) {
+
+        foreach ($badWaterQuality as $wq) {
             $alerts->push([
-                'message' => 'Kualitas air kritis',
-                'detail' => "Kolam {$wq->pond->name} - pH: {$wq->ph}, DO: {$wq->do_mg_l}mg/L"
+                'type' => 'water_quality',
+                'severity' => 'danger',
+                'title' => 'Kualitas Air Buruk',
+                'message' => "pH: {$wq->ph}, DO: {$wq->do_mg_l} mg/L, Suhu: {$wq->temperature_c}°C di {$wq->pond->name}",
+                'date' => $wq->created_at
             ]);
         }
-        
-        return $alerts;
+
+        // High mortality alerts
+        $highMortality = Mortality::whereHas('fishBatch.pond', function ($query) use ($branch) {
+            $query->where('branch_id', $branch->id);
+        })
+            ->where('created_at', '>=', Carbon::now()->subDays(7))
+            ->where('quantity', '>', 50)
+            ->latest()
+            ->take(5)
+            ->get();
+
+        foreach ($highMortality as $mortality) {
+            $alerts->push([
+                'type' => 'mortality',
+                'severity' => $mortality->quantity > 100 ? 'danger' : 'warning',
+                'title' => 'Mortalitas Tinggi',
+                'message' => "{$mortality->quantity} ekor mati di {$mortality->fishBatch->pond->name} - {$mortality->cause}",
+                'date' => $mortality->created_at
+            ]);
+        }
+
+        return $alerts->sortByDesc('date')->take(10);
+    }
+
+    private function getBatchStatus($batch)
+    {
+        $ageDays = $batch->created_at->diffInDays(now());
+        $harvestAge = $batch->fishType->harvest_age_days ?? 90;
+
+        if ($ageDays >= $harvestAge) {
+            return ['status' => 'ready', 'color' => 'green'];
+        } elseif ($ageDays >= $harvestAge * 0.8) {
+            return ['status' => 'almost_ready', 'color' => 'yellow'];
+        } else {
+            return ['status' => 'growing', 'color' => 'blue'];
+        }
+    }
+
+    private function getPeriodDays($period)
+    {
+        switch ($period) {
+            case '1week':
+                return 7;
+            case '1month':
+                return 30;
+            case '3months':
+                return 90;
+            case '6months':
+                return 180;
+            case '1year':
+                return 365;
+            default:
+                return 30;
+        }
+    }
+
+    // API Methods
+    public function apiShow(Branch $branch)
+    {
+        $statistics = $this->getBranchStatistics($branch);
+
+        return response()->json([
+            'success' => true,
+            'data' => array_merge($statistics, [
+                'branch' => $branch,
+                'water_quality_trend' => $this->getWaterQualityTrend($branch),
+                'production_distribution' => $this->getProductionDistribution($branch),
+                'pond_stock_details' => $this->getPondStockDetails($branch),
+                'harvest_predictions' => $this->getHarvestPredictions($branch),
+                'recent_alerts' => $this->getRecentAlerts($branch)
+            ])
+        ]);
+    }
+
+    public function apiStatistics(Branch $branch)
+    {
+        $statistics = $this->getBranchStatistics($branch);
+
+        return response()->json([
+            'success' => true,
+            'data' => $statistics
+        ]);
     }
 }

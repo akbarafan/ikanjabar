@@ -26,6 +26,11 @@ class Branch extends Model
         return $this->hasMany(Pond::class);
     }
 
+    public function fishTypes()
+    {
+        return $this->hasMany(FishType::class);
+    }
+
     // Perhitungan total kolam per cabang
     public function getTotalPondsAttribute()
     {

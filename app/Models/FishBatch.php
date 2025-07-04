@@ -54,11 +54,6 @@ class FishBatch extends Model
         return $this->hasMany(FishBatchTransfer::class, 'target_batch_id');
     }
 
-    public function stockSnapshot()
-    {
-        return $this->hasOne(FishStockSnapshot::class);
-    }
-
     public function getCurrentStockAttribute()
     {
         $dead = $this->mortalities()->sum('dead_count');
@@ -69,16 +64,9 @@ class FishBatch extends Model
         return max(0, $this->initial_count + $transferredIn - $transferredOut - $dead - $sold);
     }
 
-    // Auto update stock snapshot when batch data changes
-    protected static function boot()
-    {
-        parent::boot();
 
-        static::created(function ($batch) {
-            FishStockSnapshot::create([
-                'fish_batch_id' => $batch->id,
-                'current_stock' => $batch->initial_count
-            ]);
-        });
+    public function createdBy()
+    {
+        return $this->belongsTo(User::class, 'created_by');
     }
 }
